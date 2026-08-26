@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotly — Rent event attractions, direct from local owners</title>
+  <meta name="description" content="Spotly connects people planning parties, schools, and corporate events with owners of bounce houses, photo booths, carousels, and more — no commission, no middleman." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%235B4FE8%22/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#top">
+        <span class="logo-dot"></span>Spotly
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#how-it-works">How it works</a>
+        <a href="#for-owners">For owners</a>
+        <a href="#for-renters">For renters</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <a href="#waitlist" class="btn btn-primary btn-pill btn-sm">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Now booking early access</p>
+          <h1>Rent the fun stuff, straight from the people who own it.</h1>
+          <p class="lede">
+            Bounce houses, photo booths, carousels, and more — browse local attractions,
+            message owners directly, and book your event. No commission, no bidding wars,
+            no middleman markup.
+          </p>
+          <form class="waitlist-form" id="waitlist-form" novalidate>
+            <div class="role-toggle" role="radiogroup" aria-label="I am a">
+              <input type="radio" id="role-renter" name="role" value="renter" checked />
+              <label for="role-renter">Planning an event</label>
+              <input type="radio" id="role-owner" name="role" value="owner" />
+              <label for="role-owner">I own attractions</label>
+            </div>
+            <div class="form-row">
+              <label class="sr-only" for="email">Email address</label>
+              <input type="email" id="email" name="email" placeholder="you@email.com" required autocomplete="email" />
+              <button type="submit" class="btn btn-primary btn-pill">Get early access</button>
+            </div>
+            <p class="form-note" id="form-note" role="status" aria-live="polite">
+              Free for renters. Owners list for a flat $100 / 6 months — no commission, ever.
+            </p>
+          </form>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="listing-card demo-card">
+            <div class="listing-card-media">
+              <span class="badge badge-featured">Featured Today</span>
+              <div class="media-placeholder"></div>
+            </div>
+            <div class="listing-card-body">
+              <div class="listing-card-top">
+                <h3>Rainbow Castle Bounce House</h3>
+                <span class="live-view">
+                  <span class="live-dot" aria-hidden="true"></span>
+                  <span class="live-count">27</span> viewing
+                </span>
+              </div>
+              <p class="listing-card-meta">Inflatable · Brooklyn, NY · Ages 3–12</p>
+              <div class="tag-row">
+                <span class="tag">All genders</span>
+                <span class="tag">Attendant included</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="logos-strip">
+      <div class="container">
+        <p>Built for the attractions renters actually search for</p>
+        <div class="chip-row">
+          <span class="chip">Inflatables</span>
+          <span class="chip">Photo booths</span>
+          <span class="chip">Carousels</span>
+          <span class="chip">Dunk tanks</span>
+          <span class="chip">Face painting</span>
+          <span class="chip">Game trailers</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="section">
+      <div class="container">
+        <h2>How Spotly works</h2>
+        <div class="two-col">
+          <div id="for-renters" class="how-card">
+            <span class="step-kicker">For renters</span>
+            <ol class="step-list">
+              <li><strong>Search &amp; filter.</strong> By category, location, age range, and whether an attendant is included.</li>
+              <li><strong>Message the owner.</strong> Ask questions and check availability, directly in the app.</li>
+              <li><strong>Book with confidence.</strong> See real view counts and audience details before you commit.</li>
+            </ol>
+          </div>
+          <div id="for-owners" class="how-card">
+            <span class="step-kicker">For owners</span>
+            <ol class="step-list">
+              <li><strong>List once, flat fee.</strong> $100 every 6 months — no commission on what you charge.</li>
+              <li><strong>Get a fair shot at Featured.</strong> Every paid listing rotates in, based on who's waited longest — not who spent the most.</li>
+              <li><strong>See it working.</strong> Real-time views, message counts, and featured history in your dashboard.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container">
+        <h2>Everything you need, nothing you don't</h2>
+        <div class="bento-grid">
+          <div class="bento-card bento-large">
+            <h3>Live interest, not guesswork</h3>
+            <p>Every listing shows a real-time view count with a pulsing live indicator — owners see demand as it happens.</p>
+            <div class="mini-demo">
+              <span class="live-view">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span class="live-count">142</span> views this week
+              </span>
+            </div>
+          </div>
+          <div class="bento-card">
+            <h3>Audience filters</h3>
+            <p>Age range, gender suitability, and attendant requirements — set once per listing, filterable by every renter.</p>
+          </div>
+          <div class="bento-card">
+            <h3>Fair featured rotation</h3>
+            <p>Featured Today goes to whoever's waited longest — never who paid the most. Same flat fee, same shot.</p>
+          </div>
+          <div class="bento-card">
+            <h3>Direct messaging</h3>
+            <p>No forms, no phone tag. Renters message owners straight from a listing and get a real inbox.</p>
+          </div>
+          <div class="bento-card">
+            <h3>Owner analytics</h3>
+            <p>A 14-day view breakdown, message counts, and featured history for every listing you run.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" class="section pricing-section">
+      <div class="container pricing-inner">
+        <div class="pricing-copy">
+          <h2>Simple pricing. No surprises.</h2>
+          <p>Renters always browse and message for free. Owners pay one flat listing fee — that's it.</p>
+        </div>
+        <div class="price-card">
+          <p class="price-amount">$100 <span>/ 6 months</span></p>
+          <ul class="price-features">
+            <li>Unlimited photos &amp; video per listing</li>
+            <li>0% commission on what you charge renters</li>
+            <li>Full owner analytics dashboard</li>
+            <li>Equal shot at the Featured Today rotation</li>
+          </ul>
+          <a href="#waitlist" class="btn btn-primary btn-pill btn-block">Join as an owner</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="waitlist" class="section cta-section">
+      <div class="container cta-inner">
+        <h2>Be first in when we open up your area.</h2>
+        <p>We're onboarding owners city by city so every renter sees a full, real catalog from day one.</p>
+        <form class="waitlist-form waitlist-form-footer" id="waitlist-form-footer" novalidate>
+          <div class="form-row">
+            <label class="sr-only" for="email-footer">Email address</label>
+            <input type="email" id="email-footer" name="email" placeholder="you@email.com" required autocomplete="email" />
+            <button type="submit" class="btn btn-primary btn-pill">Get early access</button>
+          </div>
+          <p class="form-note" id="form-note-footer" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a class="logo" href="#top"><span class="logo-dot"></span>Spotly</a>
+      <p>&copy; <span id="year"></span> Spotly. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
