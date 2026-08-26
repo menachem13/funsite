@@ -43,8 +43,17 @@ pauses (not deletes) after 7 days of no traffic, and un-pauses itself on the
 next request or with one click in the dashboard.
 
 1. [New project](https://supabase.com/dashboard) → pick a name/region/password.
-2. Project Settings → Database → **Connection string** → URI. Copy it — this
-   is your `DATABASE_URL`.
+2. Project Settings → Database → **Connect** → Connection string. Pick the
+   **Session pooler** tab (not "Direct connection" and not "Transaction
+   pooler") and copy that URI — this is your `DATABASE_URL`.
+
+   ⚠️ Direct connection resolves to an **IPv6-only** address, and Render has
+   no outbound IPv6 support — that combination will fail to connect
+   (`ENETUNREACH`) with no obvious reason why. Session pooler runs over IPv4
+   through Supabase's Supavisor pooler and gives this backend (a normal,
+   persistent Express process — not a burst of short-lived serverless
+   requests) a dedicated connection per client, including features like
+   prepared statements that Transaction pooler mode restricts.
 
 ### Backend → Render
 
