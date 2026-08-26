@@ -32,9 +32,47 @@ python3 -m http.server 8080   # http://localhost:8080
 
 ## Deployment
 
-- **Backend:** Render (Node web service + managed Postgres), env vars
-  `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `NODE_ENV`.
-- **Frontend:** Vercel or Netlify (static hosting, auto-deploy from GitHub).
+Config files for both halves are already in the repo — connect your own
+Render/Netlify accounts and each should deploy with little to no manual setup.
+
+### Backend → Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/menachem13/funsite)
+
+Or manually: New → Blueprint → point at this repo. `render.yaml` provisions a
+free Postgres database and a Node web service together, and generates
+`JWT_SECRET` for you. It'll prompt you for one value it can't know in
+advance — **`FRONTEND_URL`** — set it to wherever the frontend below ends up
+(you can leave it blank for the first deploy and fill it in after, then
+redeploy). The web service's start command runs the DB migration before
+every boot, so the schema stays up to date automatically.
+
+⚠️ **Render's free Postgres plan is deleted after 30 days** (data included) —
+fine for a first test, but switch the database's `plan` in `render.yaml` (or
+in the Render dashboard) to a paid tier before you have real signups.
+
+If you didn't use the button above (which needs the repo to be public), a
+private repo needs the manual Blueprint path with a connected GitHub account
+instead.
+
+### Frontend → Netlify
+
+New site from Git → pick this repo. `netlify.toml` (at the repo root) is
+already configured with `base = "frontend"`, so Netlify serves
+`frontend/index.html` with no build step and no extra settings needed.
+
+**Vercel instead:** works too, just set the project's **Root Directory** to
+`frontend` in the dashboard when importing (Vercel doesn't read that setting
+from a config file the way Netlify does) — everything else is automatic.
+
+### Wiring the two together
+
+CORS is locked to `FRONTEND_URL`, so the API will reject browser requests
+from any other origin. After both are deployed: copy the frontend's URL into
+the backend's `FRONTEND_URL` env var (Render dashboard → redeploy), and if
+you're calling the API from the frontend, point those requests at the
+backend's `.onrender.com` URL (or your custom domain, once you attach one —
+both platforms issue HTTPS certs for custom domains automatically).
 
 ## What's stubbed / not yet built
 
