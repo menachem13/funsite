@@ -1,4 +1,4 @@
-// Spotly landing page — waitlist form handling + small live-demo touches.
+// Funsite landing page — waitlist form handling + small live-demo touches.
 //
 // NOTE: there's no waitlist API yet (see spec section 8). This validates
 // client-side and shows a success state; wire the fetch() call up to a real
@@ -26,7 +26,7 @@
 
       // Placeholder for the real submission — see NOTE above.
       form.reset();
-      note.textContent = "You're on the list! We'll email you when Spotly opens in your area.";
+      note.textContent = "You're on the list! We'll email you when Funsite opens in your area.";
       note.className = 'form-note success';
     });
 

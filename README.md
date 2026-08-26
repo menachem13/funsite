@@ -1,4 +1,4 @@
-# Spotly
+# Funsite
 
 Two-sided marketplace: owners of bounce houses, photo booths, carousels, and
 similar event attractions list them for a flat fee; renters browse, filter,

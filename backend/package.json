@@ -1,7 +1,7 @@
 {
-  "name": "spotly-backend",
+  "name": "funsite-backend",
   "version": "1.0.0",
-  "description": "Spotly API — two-sided marketplace for event attraction rentals",
+  "description": "Funsite API — two-sided marketplace for event attraction rentals",
   "private": true,
   "main": "src/server.js",
   "type": "commonjs",
