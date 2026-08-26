@@ -1,12 +1,6 @@
-# NOTE: plan: free databases on Render are deleted after 30 days (data and
-# all). Fine for a first test deploy; switch to a paid plan before you have
-# real signups you can't afford to lose (see README's Deployment section).
-databases:
-  - name: funsite-db
-    databaseName: funsite
-    user: funsite
-    plan: free
-
+# Database is external (Supabase — see README's Deployment section for why
+# and how to set it up), so it isn't provisioned here. DATABASE_URL is filled
+# in by hand in the Render dashboard after you create the Supabase project.
 services:
   - type: web
     name: funsite-api
@@ -18,9 +12,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: funsite-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: NODE_ENV

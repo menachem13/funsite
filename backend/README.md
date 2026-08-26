@@ -50,6 +50,9 @@ src/
   Checkout + webhook verification; keep the same activate-on-`paid` flow.
 - **CORS** reads `FRONTEND_URL` — set it to the real frontend origin before
   launch (defaults to `*` if unset, which is fine for local dev only).
+- **SSL to Postgres** turns on automatically when `NODE_ENV=production`
+  (`db/pool.js`) — needed for managed providers like Supabase/Neon/Render.
+  Local dev Postgres has no SSL listener, so keep `NODE_ENV=development` there.
 - **Featured rotation** lives entirely in `services/featuredRotation.js` and
   is deliberately fairness-based (longest-since-featured), not popularity- or
   spend-based — see the product spec before changing this.
