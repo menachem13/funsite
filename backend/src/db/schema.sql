@@ -128,6 +128,14 @@ CREATE TABLE IF NOT EXISTS payments (
 CREATE INDEX IF NOT EXISTS idx_payments_listing ON payments(listing_id);
 CREATE INDEX IF NOT EXISTS idx_payments_owner ON payments(owner_id);
 
+-- At most one views_gate trial per listing, ever — enforced here rather
+-- than in application code so it holds even under concurrent checkout
+-- requests. Without this, redeeming a views_gate coupon repeatedly on the
+-- same listing would extend subscription_expires_at by 6 months forever
+-- without ever actually becoming chargeable.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_one_trial_per_listing
+  ON payments (listing_id) WHERE view_threshold IS NOT NULL;
+
 -- Audit trail of coupon usage, also how times_used is verified independent
 -- of the counter on coupons itself.
 CREATE TABLE IF NOT EXISTS coupon_redemptions (

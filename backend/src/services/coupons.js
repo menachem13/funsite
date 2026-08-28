@@ -6,14 +6,26 @@ async function findCouponByCode(client, code) {
   return rows[0] || null;
 }
 
-/** Throws if the coupon can't be redeemed right now (inactive or exhausted). */
-function assertCouponUsable(coupon) {
-  if (!coupon.active) {
-    throw new ApiError(400, 'This coupon code is no longer active');
+/**
+ * Atomically checks usability AND increments times_used in one statement —
+ * must be called with a transaction client, right before the redemption it
+ * guards. A separate check-then-increment (the previous shape of this
+ * function) leaves a window where two concurrent redemptions can both pass
+ * the check before either increments, letting a single-use coupon be
+ * redeemed twice. Returns the coupon's fresh row, or throws if it's
+ * inactive or exhausted.
+ */
+async function claimCoupon(client, couponId) {
+  const { rows } = await client.query(
+    `UPDATE coupons SET times_used = times_used + 1
+     WHERE id = $1 AND active = true AND (usage_limit IS NULL OR times_used < usage_limit)
+     RETURNING *`,
+    [couponId]
+  );
+  if (!rows[0]) {
+    throw new ApiError(400, 'This coupon code is no longer available (inactive or fully redeemed)');
   }
-  if (coupon.usage_limit !== null && coupon.times_used >= coupon.usage_limit) {
-    throw new ApiError(400, 'This coupon code has already been fully redeemed');
-  }
+  return rows[0];
 }
 
 /** percent/fixed only — computes the discounted charge, floored at 0. */
@@ -27,13 +39,12 @@ function applyDiscount(coupon, baseAmountCents) {
   throw new ApiError(500, `applyDiscount called on a non-discount coupon type: ${coupon.type}`);
 }
 
-/** Records a redemption and increments the coupon's usage counter. */
+/** Audit-trail row only — usage counting happens in claimCoupon() above. */
 async function recordRedemption(client, { couponId, listingId, ownerId, paymentId }) {
   await client.query(
     'INSERT INTO coupon_redemptions (coupon_id, listing_id, owner_id, payment_id) VALUES ($1, $2, $3, $4)',
     [couponId, listingId, ownerId, paymentId]
   );
-  await client.query('UPDATE coupons SET times_used = times_used + 1 WHERE id = $1', [couponId]);
 }
 
-module.exports = { findCouponByCode, assertCouponUsable, applyDiscount, recordRedemption };
+module.exports = { findCouponByCode, claimCoupon, applyDiscount, recordRedemption };

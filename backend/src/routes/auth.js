@@ -67,15 +67,15 @@ router.post(
       throw new ApiError(401, 'Invalid email or password');
     }
 
-    // Admin has no password — it's a fixed username + emailed OTP, see below.
-    // Checked before bcrypt.compare: an admin row's password_hash is an
-    // unusable random value that could never match anyway.
-    if (user.role === 'admin') {
-      throw new ApiError(401, 'Admin accounts log in via /auth/admin/request-otp, not a password');
-    }
-
+    // Admin has no password — it's a fixed username + emailed OTP (see
+    // routes/auth.js's /admin/* routes). An admin row's password_hash is an
+    // unusable random value that could never match, so this always fails —
+    // but it still runs through the same bcrypt.compare and returns the
+    // exact same generic message as any other wrong password. A distinct
+    // message here would let anyone confirm a guessed email is the admin
+    // account without ever touching the OTP flow.
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
+    if (!valid || user.role === 'admin') {
       throw new ApiError(401, 'Invalid email or password');
     }
 

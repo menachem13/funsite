@@ -5,7 +5,9 @@ const config = require('../config');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const { authenticate, requireRole } = require('../middleware/auth');
-const { findCouponByCode, assertCouponUsable, applyDiscount, recordRedemption } = require('../services/coupons');
+const { findCouponByCode, claimCoupon, applyDiscount, recordRedemption } = require('../services/coupons');
+
+const ONE_TRIAL_PER_LISTING_CONSTRAINT = 'idx_payments_one_trial_per_listing';
 
 const router = express.Router();
 
@@ -45,7 +47,6 @@ router.post(
     if (couponCode) {
       coupon = await findCouponByCode(pool, couponCode);
       if (!coupon) throw new ApiError(400, 'Unknown coupon code');
-      assertCouponUsable(coupon);
     }
 
     const providerRef = `stub_${crypto.randomUUID()}`;
@@ -53,16 +54,31 @@ router.post(
     try {
       await client.query('BEGIN');
 
+      // Re-checks usability AND increments times_used atomically, inside
+      // this transaction — closes the race where two concurrent checkouts
+      // could both pass a since-stale usage check on the same coupon.
+      if (coupon) {
+        coupon = await claimCoupon(client, coupon.id);
+      }
+
       let payment;
       if (coupon && coupon.type === 'views_gate') {
         // Free trial: activate now, defer the charge until the view threshold hits.
         const periodEnd = sixMonthsFrom(new Date());
-        const inserted = await client.query(
-          `INSERT INTO payments (listing_id, owner_id, amount_cents, status, provider_ref, coupon_id, view_threshold)
-           VALUES ($1, $2, $3, 'pending', $4, $5, $6)
-           RETURNING *`,
-          [listingId, req.user.id, config.listingFeeCents, providerRef, coupon.id, coupon.view_threshold]
-        );
+        let inserted;
+        try {
+          inserted = await client.query(
+            `INSERT INTO payments (listing_id, owner_id, amount_cents, status, provider_ref, coupon_id, view_threshold)
+             VALUES ($1, $2, $3, 'pending', $4, $5, $6)
+             RETURNING *`,
+            [listingId, req.user.id, config.listingFeeCents, providerRef, coupon.id, coupon.view_threshold]
+          );
+        } catch (err) {
+          if (err.constraint === ONE_TRIAL_PER_LISTING_CONSTRAINT) {
+            throw new ApiError(400, 'This listing has already used a views-gated trial');
+          }
+          throw err;
+        }
         payment = inserted.rows[0];
 
         await client.query(
@@ -148,8 +164,7 @@ router.post(
 
       if (status === 'paid') {
         const periodStart = new Date();
-        const periodEnd = new Date(periodStart);
-        periodEnd.setMonth(periodEnd.getMonth() + config.subscriptionMonths);
+        const periodEnd = sixMonthsFrom(periodStart);
 
         await client.query(
           `UPDATE payments SET status = 'paid', period_start = $1, period_end = $2 WHERE id = $3`,
