@@ -77,6 +77,26 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id);
 
+-- Admin-created discount/trial codes. Three mutually exclusive types (see
+-- `type`): percent and fixed both discount the fee at checkout; views_gate
+-- instead defers the charge entirely until the listing proves itself with
+-- real traffic — see payments.view_threshold below.
+CREATE TABLE IF NOT EXISTS coupons (
+  id SERIAL PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('percent', 'fixed', 'views_gate')),
+  percent_off INTEGER CHECK (percent_off IS NULL OR (percent_off > 0 AND percent_off <= 100)),
+  amount_off_cents INTEGER CHECK (amount_off_cents IS NULL OR amount_off_cents > 0),
+  view_threshold INTEGER CHECK (view_threshold IS NULL OR view_threshold > 0),
+  usage_limit INTEGER CHECK (usage_limit IS NULL OR usage_limit > 0),
+  times_used INTEGER NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_coupons_code ON coupons ((upper(code)));
+
 CREATE TABLE IF NOT EXISTS payments (
   id SERIAL PRIMARY KEY,
   listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
@@ -86,11 +106,28 @@ CREATE TABLE IF NOT EXISTS payments (
   period_start TIMESTAMPTZ,
   period_end TIMESTAMPTZ,
   provider_ref TEXT,
+  coupon_id INTEGER REFERENCES coupons(id) ON DELETE SET NULL,
+  -- Set only for a views_gate coupon redemption: the listing.view_count this
+  -- payment becomes chargeable at. NULL for every ordinary payment.
+  view_threshold INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_listing ON payments(listing_id);
 CREATE INDEX IF NOT EXISTS idx_payments_owner ON payments(owner_id);
+
+-- Audit trail of coupon usage, also how times_used is verified independent
+-- of the counter on coupons itself.
+CREATE TABLE IF NOT EXISTS coupon_redemptions (
+  id SERIAL PRIMARY KEY,
+  coupon_id INTEGER REFERENCES coupons(id) ON DELETE SET NULL,
+  listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  payment_id INTEGER REFERENCES payments(id) ON DELETE SET NULL,
+  redeemed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_coupon_redemptions_coupon ON coupon_redemptions(coupon_id);
 
 CREATE TABLE IF NOT EXISTS featured_log (
   id SERIAL PRIMARY KEY,
