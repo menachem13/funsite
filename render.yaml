@@ -19,3 +19,12 @@ services:
         value: production
       - key: FRONTEND_URL
         sync: false
+      # Admin login (fixed username + emailed OTP — see backend/README.md).
+      # Without SMTP_* vars set too, the OTP only logs to Render's own
+      # service logs rather than actually emailing — fine to start with,
+      # since that log is private to your Render account, but set SMTP_HOST
+      # etc. before treating this as real access control.
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_OTP_EMAILS
+        sync: false

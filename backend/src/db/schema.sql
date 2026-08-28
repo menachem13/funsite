@@ -9,6 +9,18 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- One-time login codes for the single fixed admin account (env-configured
+-- ADMIN_USERNAME/ADMIN_OTP_EMAILS — there is no admin self-registration).
+-- Global, not per-user: only one admin identity exists.
+CREATE TABLE IF NOT EXISTS admin_otp_codes (
+  id SERIAL PRIMARY KEY,
+  code_hash TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  expires_at TIMESTAMPTZ NOT NULL,
+  consumed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS listings (
   id SERIAL PRIMARY KEY,
   owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

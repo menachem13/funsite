@@ -37,9 +37,40 @@ src/
     featuredRotation.js    Isolated, swappable "who's featured today" logic
     subscriptionExpiry.js
     coupons.js              Lookup, usage-limit check, discount math
+    adminAuth.js             OTP generation/verification for admin login
+    mailer.js                SMTP send if configured, console-log stub otherwise
   jobs/
     cron.js
 ```
+
+## Admin login
+
+Admin has no password. It's a single fixed identity, set via env vars —
+there's no admin self-registration, and `POST /auth/register` only ever
+accepts `owner`/`renter` (letting anyone self-register as admin would be a
+real vulnerability):
+
+- `ADMIN_USERNAME` — whatever you pick.
+- `ADMIN_OTP_EMAILS` — comma-separated; the login code goes to all of them,
+  any one recipient can complete the login.
+
+Flow: `POST /auth/admin/request-otp { username }` emails a 6-digit code
+(10-minute expiry, invalidates any still-open code, always responds the same
+regardless of whether `username` was actually right — so this endpoint can't
+be used to test the username). `POST /auth/admin/verify-otp { username, code }`
+checks it (5 wrong tries and you need a new code) and returns a normal JWT
+with `role: admin`, same as any other login. The underlying `users` row is
+auto-created on first successful login (email = the first `ADMIN_OTP_EMAILS`
+address, an unusable random `password_hash` since it's never used) — no
+manual DB step needed. `POST /auth/login` (the password path) explicitly
+rejects `role: admin` accounts, so there's exactly one way in.
+
+Without `ADMIN_USERNAME`/`ADMIN_OTP_EMAILS` set, the `admin/*` auth routes
+503 with a clear message — the rest of the app runs fine without an admin
+configured. Without `SMTP_HOST` etc. set too, the OTP is only logged to the
+server's own console/log output (`services/mailer.js`) rather than actually
+emailed — fine for local dev, not for real access control once this is
+public.
 
 ## Coupons
 
@@ -69,15 +100,8 @@ math meaningful. `DELETE /admin/coupons/:id` is a hard delete; past
 `coupon_id` set to `NULL` rather than being deleted or orphaned.
 
 Redeem one by passing `couponCode` in the body of
-`POST /payments/listings/:id/checkout`.
-
-**There's no admin signup flow yet** (spec section 2 flags admin tooling as
-unbuilt, and `POST /auth/register` only accepts `owner`/`renter` — allowing
-public self-registration as admin would be a real vulnerability). To test or
-bootstrap the first admin, register normally then promote by hand:
-```sql
-UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
-```
+`POST /payments/listings/:id/checkout`. See "Admin login" above for how to
+actually get a `role: admin` token to call these with.
 
 ## Notes for whoever picks this up next
 
