@@ -8,12 +8,9 @@ and message owners directly to book.
 
 ```
 backend/    Express + PostgreSQL API — see backend/README.md for setup
-frontend/   Static marketing/waitlist landing page (index.html, css/, js/)
+frontend/   React (Vite) app — landing page, browse/search, listing detail,
+            owner dashboard, messaging, admin coupon panel — see below
 ```
-
-The logged-in owner dashboard and renter browsing UI are not part of this
-static frontend — those need a real frontend app (React or similar) talking
-to the API in `backend/`, per the product spec.
 
 ## Quick start
 
@@ -25,9 +22,11 @@ cp .env.example .env   # set DATABASE_URL (your own Postgres locally), JWT_SECRE
 npm run migrate
 npm start                # http://localhost:4000
 
-# Frontend (any static server)
+# Frontend
 cd frontend
-python3 -m http.server 8080   # http://localhost:8080
+npm install
+cp .env.example .env   # VITE_API_URL, defaults to http://localhost:4000/api
+npm run dev               # http://localhost:5173
 ```
 
 ## Deployment
@@ -81,25 +80,34 @@ instead.
 ### Frontend → Netlify
 
 New site from Git → pick this repo. `netlify.toml` (at the repo root) is
-already configured with `base = "frontend"`, so Netlify serves
-`frontend/index.html` with no build step and no extra settings needed.
+configured with `base = "frontend"`, `command = "npm run build"`, and
+`publish = "dist"` — Netlify builds the React app automatically. It'll ask
+for one environment variable it can't know in advance:
+
+- **`VITE_API_URL`** — the backend's URL from the Render step above, with
+  `/api` on the end (e.g. `https://funsite-api-xxxx.onrender.com/api`). Set
+  it under Site settings → Environment variables, then trigger a redeploy —
+  Vite bakes this in at *build* time, so changing it always needs a rebuild,
+  not just a restart.
 
 **Vercel instead:** works too, just set the project's **Root Directory** to
 `frontend` in the dashboard when importing (Vercel doesn't read that setting
-from a config file the way Netlify does) — everything else is automatic.
+from a config file the way Netlify does) — everything else (including the
+build command, from `frontend/package.json`) is automatic.
 
 ### Wiring the two together
 
 CORS is locked to `FRONTEND_URL`, so the API will reject browser requests
 from any other origin. After both are deployed: copy the frontend's URL into
-the backend's `FRONTEND_URL` env var (Render dashboard → redeploy), and if
-you're calling the API from the frontend, point those requests at the
-backend's `.onrender.com` URL (or your custom domain, once you attach one —
-both platforms issue HTTPS certs for custom domains automatically).
+the backend's `FRONTEND_URL` env var (Render dashboard → redeploy), and
+confirm the frontend's `VITE_API_URL` points at the backend's `.onrender.com`
+URL (or your custom domain, once you attach one — both platforms issue HTTPS
+certs for custom domains automatically).
 
 ## What's stubbed / not yet built
 
 See `backend/README.md` for backend-specific notes. Not built at all yet:
-real payment processing (Stripe), cloud file storage, structured/geocoded
-location, the logged-in owner/renter frontend app, notifications, password
-reset, admin tooling, and rate limiting — tracked in the product spec.
+real payment processing (Stripe — the frontend's checkout flow completes the
+existing stub instead, clearly labeled as a demo payment), cloud file
+storage, structured/geocoded location, notifications, password reset, and
+rate limiting — tracked in the product spec.

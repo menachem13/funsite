@@ -1,0 +1,15 @@
+.admin-page {
+  padding: 40px 24px 80px;
+}
+
+.admin-page > p {
+  margin-top: -8px;
+}
+
+.coupon-form {
+  margin: 24px 0 32px;
+}
+
+.coupon-form .form-row {
+  align-items: end;
+}

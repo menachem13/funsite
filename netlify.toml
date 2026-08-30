@@ -1,6 +1,15 @@
 [build]
   base = "frontend"
-  publish = "."
+  command = "npm run build"
+  publish = "dist"
+
+# Client-side routing (React Router) — any path Netlify can't find as a
+# static file falls back to index.html so deep links like /listings/12
+# and page refreshes work instead of 404ing.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [[headers]]
   for = "/*"
