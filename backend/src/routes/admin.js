@@ -37,12 +37,17 @@ router.post(
     if (!code || !code.trim()) {
       throw new ApiError(400, 'code is required');
     }
+    const normalizedCode = code.trim().toUpperCase();
     validateCouponFields({ type, percentOff, amountOffCents, viewThreshold });
     if (usageLimit !== undefined && usageLimit !== null && (!Number.isInteger(usageLimit) || usageLimit <= 0)) {
       throw new ApiError(400, 'usageLimit must be a positive integer, or omitted for unlimited use');
     }
 
-    const existing = await pool.query('SELECT id FROM coupons WHERE upper(code) = upper($1)', [code]);
+    // Compare against the same normalized form that gets stored below —
+    // otherwise a code that only differs by whitespace (e.g. " ABC" vs
+    // stored "ABC") slips past this check and hits the DB's unique index
+    // instead, surfacing as an unhandled 500 rather than this 409.
+    const existing = await pool.query('SELECT id FROM coupons WHERE upper(code) = $1', [normalizedCode]);
     if (existing.rows.length > 0) {
       throw new ApiError(409, 'A coupon with this code already exists');
     }
@@ -52,7 +57,7 @@ router.post(
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
-        code.trim().toUpperCase(),
+        normalizedCode,
         type,
         type === 'percent' ? percentOff : null,
         type === 'fixed' ? amountOffCents : null,

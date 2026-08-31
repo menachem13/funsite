@@ -1,5 +1,7 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
+const config = require('../config');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const { authenticate, requireRole } = require('../middleware/auth');
@@ -13,6 +15,31 @@ async function loadOwnedListing(listingId, ownerId) {
   if (!listing) throw new ApiError(404, 'Listing not found');
   if (listing.owner_id !== ownerId) throw new ApiError(403, 'You do not own this listing');
   return listing;
+}
+
+/** Best-effort JWT decode for routes that work for both logged-in and anonymous callers. */
+function getOptionalViewer(req) {
+  const header = req.headers.authorization || '';
+  if (!header.startsWith('Bearer ')) return null;
+  try {
+    const payload = jwt.verify(header.slice(7), config.jwtSecret);
+    return { id: payload.sub, role: payload.role };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A listing that isn't 'active' yet (unpaid, or expired) hasn't been
+ * published — only its owner (or an admin) should be able to see or
+ * message about it. Everyone else gets the same 404 a nonexistent id
+ * would, so guessing sequential ids can't be used to confirm a draft
+ * listing exists.
+ */
+function assertListingVisible(listing, viewer) {
+  if (listing.status === 'active') return;
+  if (viewer && (viewer.id === listing.owner_id || viewer.role === 'admin')) return;
+  throw new ApiError(404, 'Listing not found');
 }
 
 // --- Create -----------------------------------------------------------
@@ -132,25 +159,18 @@ router.get(
     const listing = rows[0];
     if (!listing) throw new ApiError(404, 'Listing not found');
 
+    const viewer = getOptionalViewer(req);
+    assertListingVisible(listing, viewer);
+
     const media = await pool.query(
       'SELECT * FROM listing_media WHERE listing_id = $1 ORDER BY position ASC, id ASC',
       [listingId]
     );
 
-    let viewerId = null;
-    const header = req.headers.authorization || '';
-    if (header.startsWith('Bearer ')) {
-      try {
-        const jwt = require('jsonwebtoken');
-        const config = require('../config');
-        const payload = jwt.verify(header.slice(7), config.jwtSecret);
-        viewerId = payload.sub;
-      } catch {
-        // Anonymous view is fine if the token is missing/invalid.
-      }
-    }
-
-    await pool.query('INSERT INTO listing_views (listing_id, viewer_id) VALUES ($1, $2)', [listingId, viewerId]);
+    await pool.query('INSERT INTO listing_views (listing_id, viewer_id) VALUES ($1, $2)', [
+      listingId,
+      viewer?.id ?? null,
+    ]);
     await pool.query('UPDATE listings SET view_count = view_count + 1 WHERE id = $1', [listingId]);
 
     res.json({ listing: { ...listing, view_count: listing.view_count + 1 }, media: media.rows });
@@ -312,7 +332,10 @@ router.post(
 
     const { rows: listingRows } = await pool.query('SELECT * FROM listings WHERE id = $1', [listingId]);
     const listing = listingRows[0];
-    if (!listing) throw new ApiError(404, 'Listing not found');
+    // Same 404 for "doesn't exist" and "isn't published yet" — a renter has
+    // no legitimate reason to message about a listing that was never
+    // activated, and this avoids confirming a draft listing's id is in use.
+    if (!listing || listing.status !== 'active') throw new ApiError(404, 'Listing not found');
 
     let thread;
     const existing = await pool.query('SELECT * FROM threads WHERE listing_id = $1 AND renter_id = $2', [
