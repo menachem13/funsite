@@ -1,41 +1,13 @@
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
 const ApiError = require('../utils/ApiError');
+const { MIME_EXTENSIONS } = require('../services/storage');
 
-const UPLOAD_DIR = path.join(__dirname, '..', '..', 'uploads');
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
-// The stored extension is derived from this map (keyed by the *validated*
-// mimetype), never from the client-supplied original filename — the two are
-// independently attacker-controlled and can be made to disagree (e.g.
-// filename "x.svg" with Content-Type: image/png). Letting the filename pick
-// the extension would let a file with disallowed, executable content type
-// (SVG with an embedded <script>, or arbitrary HTML) get stored with that
-// extension and then served by express.static with a matching, browser-
-// executable Content-Type — exactly what the mimetype allowlist below is
-// supposed to prevent.
-const MIME_EXTENSIONS = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-  'image/gif': '.gif',
-  'video/mp4': '.mp4',
-  'video/quicktime': '.mov',
-  'video/webm': '.webm',
-};
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const ext = MIME_EXTENSIONS[file.mimetype];
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${ext}`);
-  },
-});
-
+// Memory storage, not disk: files must reach services/storage.js as buffers
+// so they can go straight to Supabase Storage (or, in local dev without
+// Supabase configured, be written out ourselves) — see storage.js for why
+// nothing here writes to disk directly.
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 200 * 1024 * 1024, files: 20 },
   fileFilter: (req, file, cb) => {
     if (!MIME_EXTENSIONS[file.mimetype]) {
@@ -48,8 +20,4 @@ const upload = multer({
   },
 });
 
-function mediaTypeFor(mimetype) {
-  return mimetype.startsWith('video/') ? 'video' : 'image';
-}
-
-module.exports = { upload, mediaTypeFor, UPLOAD_DIR };
+module.exports = { upload };

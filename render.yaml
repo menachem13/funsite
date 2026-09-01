@@ -28,3 +28,14 @@ services:
         sync: false
       - key: ADMIN_OTP_EMAILS
         sync: false
+      # Listing photo/video storage (Supabase Storage — see backend/README.md's
+      # "Listing photo/video storage" section for the one-time bucket setup).
+      # Required in production: without these the server refuses to boot,
+      # rather than silently falling back to Render's local disk, which is
+      # wiped on every redeploy.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: listing-media

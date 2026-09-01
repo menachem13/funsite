@@ -5,7 +5,8 @@ const config = require('../config');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const { authenticate, requireRole } = require('../middleware/auth');
-const { upload, mediaTypeFor } = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
+const { saveListingMedia, mediaTypeFor } = require('../services/storage');
 
 const router = express.Router();
 
@@ -264,7 +265,7 @@ router.post(
     const inserted = [];
     for (const file of req.files) {
       const type = mediaTypeFor(file.mimetype);
-      const url = `/uploads/${file.filename}`;
+      const url = await saveListingMedia({ listingId, buffer: file.buffer, mimetype: file.mimetype });
       const { rows } = await pool.query(
         `INSERT INTO listing_media (listing_id, type, url, position) VALUES ($1, $2, $3, $4) RETURNING *`,
         [listingId, type, url, position]

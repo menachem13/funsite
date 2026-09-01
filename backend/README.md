@@ -29,7 +29,7 @@ src/
     pool.js          pg Pool
   middleware/
     auth.js          JWT verification, role guard
-    upload.js         Multer config (local disk — see note below)
+    upload.js         Multer config (memory storage — files are buffers, see services/storage.js)
     errorHandler.js
   routes/
     auth.js, listings.js, threads.js, payments.js, dashboard.js, admin.js
@@ -39,6 +39,7 @@ src/
     coupons.js              Lookup, usage-limit check, discount math
     adminAuth.js             OTP generation/verification for admin login
     mailer.js                SMTP send if configured, console-log stub otherwise
+    storage.js               Listing media: Supabase Storage in production, local disk in dev
   jobs/
     cron.js
 ```
@@ -71,6 +72,33 @@ configured. Without `SMTP_HOST` etc. set too, the OTP is only logged to the
 server's own console/log output (`services/mailer.js`) rather than actually
 emailed — fine for local dev, not for real access control once this is
 public.
+
+## Listing photo/video storage
+
+Uploaded listing media (`POST /listings/:id/media`) goes to **Supabase
+Storage** in production, so photos survive a Render redeploy — Render's own
+local disk gets wiped on every deploy, which is what used to make listing
+photos disappear.
+
+Set up once, in the Supabase dashboard for the same project your
+`DATABASE_URL` points at:
+
+1. **Storage → Create a new bucket.** Name it `listing-media` (or whatever
+   you set `SUPABASE_STORAGE_BUCKET` to), and check **"Public bucket"** —
+   listing photos need to be publicly viewable by renters with no login.
+2. **Project Settings → API** — copy the **Project URL** into
+   `SUPABASE_URL`, and the **`service_role` secret key** (not the `anon`
+   public key) into `SUPABASE_SERVICE_ROLE_KEY`.
+
+Set those two (plus `SUPABASE_STORAGE_BUCKET` if you didn't use the
+default name) on Render. Without them, the server falls back to writing
+into local `uploads/` — fine for local dev, but in production
+(`NODE_ENV=production`) the server now refuses to boot without them
+(`config.js`), rather than silently losing every photo on the next deploy.
+
+Files are stored under `<listingId>/<timestamp>-<random><ext>` in the
+bucket; `listing_media.url` stores the full public Supabase URL directly, so
+no code change is needed if you ever move the bucket.
 
 ## Coupons
 
@@ -115,8 +143,10 @@ actually get a `role: admin` token to call these with.
   and `payments.view_threshold` already hit exactly this once — see the
   `ALTER TABLE payments ...` lines in `schema.sql` for the fix and the
   pattern to repeat next time a column gets added to a pre-existing table.
-- **File uploads are local disk** (`uploads/`, served at `/uploads/...`).
-  Most hosts wipe local disk on redeploy — move to S3/R2 before real launch.
+- **File uploads go to Supabase Storage in production** (see "Listing
+  photo/video storage" above) — local disk (`uploads/`, served at
+  `/uploads/...`) is only a local-dev fallback now, since most hosts
+  (including Render's free tier) wipe local disk on every redeploy.
 - **Payments are stubbed.** `POST /payments/listings/:id/checkout` and
   `POST /payments/webhook` correctly create pending payments and
   activate/expire listings, but don't call a real processor. Swap in Stripe
