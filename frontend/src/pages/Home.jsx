@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Reveal from "../components/Reveal";
+import ConfettiBurst from "../components/ConfettiBurst";
+import { useCountUp } from "../hooks/useCountUp";
 import "./Home.css";
+
+const CATEGORIES = ["Inflatables", "Photo booths", "Carousels", "Dunk tanks", "Face painting", "Game trailers"];
 
 export default function Home() {
   const { user } = useAuth();
@@ -9,6 +14,13 @@ export default function Home() {
   return (
     <div className="home-page">
       <section className="hero">
+        <div className="hero-bg" aria-hidden="true">
+          <span className="blob blob-1" />
+          <span className="blob blob-2" />
+          <span className="blob blob-3" />
+          <ConfettiBurst />
+        </div>
+
         <div className="container hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">Now booking in your area</p>
@@ -30,7 +42,7 @@ export default function Home() {
           </div>
 
           <div className="hero-visual" aria-hidden="true">
-            <div className="listing-card demo-card">
+            <div className="listing-card demo-card hero-card">
               <div className="listing-card-media">
                 <span className="badge badge-featured">Featured Today</span>
                 <div className="media-placeholder" />
@@ -54,26 +66,28 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="logos-strip">
+      <Reveal as="section" className="logos-strip">
         <div className="container">
           <p>Built for the attractions renters actually search for</p>
-          <div className="chip-row">
-            {["Inflatables", "Photo booths", "Carousels", "Dunk tanks", "Face painting", "Game trailers"].map(
-              (c) => (
-                <span className="chip" key={c}>
-                  {c}
-                </span>
-              )
-            )}
+        </div>
+        <div className="marquee">
+          <div className="marquee-track">
+            {[...CATEGORIES, ...CATEGORIES].map((c, i) => (
+              <span className="chip" key={`${c}-${i}`}>
+                {c}
+              </span>
+            ))}
           </div>
         </div>
-      </section>
+      </Reveal>
 
       <section className="section" id="how-it-works">
         <div className="container">
-          <h2>How Funsite works</h2>
+          <Reveal as="h2" className="section-title">
+            How Funsite works
+          </Reveal>
           <div className="two-col">
-            <div className="how-card">
+            <Reveal className="how-card">
               <span className="step-kicker">For renters</span>
               <ol className="step-list">
                 <li>
@@ -89,8 +103,8 @@ export default function Home() {
                   before you commit.
                 </li>
               </ol>
-            </div>
-            <div className="how-card">
+            </Reveal>
+            <Reveal className="how-card" delay={120}>
               <span className="step-kicker">For owners</span>
               <ol className="step-list">
                 <li>
@@ -106,46 +120,43 @@ export default function Home() {
                   history in your dashboard.
                 </li>
               </ol>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
       <section className="section section-alt">
         <div className="container">
-          <h2>Everything you need, nothing you don't</h2>
+          <Reveal as="h2" className="section-title">
+            Everything you need, nothing you don't
+          </Reveal>
           <div className="bento-grid">
-            <div className="bento-card bento-large">
+            <Reveal as="div" className="bento-card bento-large">
               <h3>Live interest, not guesswork</h3>
               <p>Every listing shows a real-time view count with a pulsing live indicator — owners see demand as it happens.</p>
-              <div className="mini-demo">
-                <span className="live-view">
-                  <span className="live-dot" aria-hidden="true" />
-                  <span className="count">142</span> views this week
-                </span>
-              </div>
-            </div>
-            <div className="bento-card">
+              <LiveStatDemo />
+            </Reveal>
+            <Reveal className="bento-card" delay={80}>
               <h3>Audience filters</h3>
               <p>Age range, gender suitability, and attendant requirements — set once per listing, filterable by every renter.</p>
-            </div>
-            <div className="bento-card">
+            </Reveal>
+            <Reveal className="bento-card" delay={160}>
               <h3>Fair featured rotation</h3>
               <p>Featured Today goes to whoever's waited longest — never who paid the most. Same flat fee, same shot.</p>
-            </div>
-            <div className="bento-card">
+            </Reveal>
+            <Reveal className="bento-card" delay={80}>
               <h3>Direct messaging</h3>
               <p>No forms, no phone tag. Renters message owners straight from a listing and get a real inbox.</p>
-            </div>
-            <div className="bento-card">
+            </Reveal>
+            <Reveal className="bento-card" delay={160}>
               <h3>Owner analytics</h3>
               <p>A 14-day view breakdown, message counts, and featured history for every listing you run.</p>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      <section className="section pricing-section" id="pricing">
+      <Reveal as="section" className="section pricing-section" id="pricing">
         <div className="container pricing-inner">
           <div className="pricing-copy">
             <h2>Simple pricing. No surprises.</h2>
@@ -166,9 +177,9 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </Reveal>
 
-      <section className="section cta-section">
+      <Reveal as="section" className="section cta-section">
         <div className="container cta-inner">
           <h2>Ready to see what's available near you?</h2>
           <p>Browse live listings now — no account needed until you're ready to message an owner.</p>
@@ -176,7 +187,19 @@ export default function Home() {
             Browse attractions
           </Link>
         </div>
-      </section>
+      </Reveal>
+    </div>
+  );
+}
+
+function LiveStatDemo() {
+  const [ref, value] = useCountUp(142);
+  return (
+    <div className="mini-demo" ref={ref}>
+      <span className="live-view">
+        <span className="live-dot" aria-hidden="true" />
+        <span className="count">{value}</span> views this week
+      </span>
     </div>
   );
 }

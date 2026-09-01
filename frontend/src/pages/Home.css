@@ -1,11 +1,100 @@
 .hero {
-  padding: 64px 0 48px;
+  position: relative;
+  overflow: hidden;
+  padding: 92px 0 76px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.32;
+  will-change: transform;
+}
+
+.blob-1 {
+  width: 420px;
+  height: 420px;
+  top: -160px;
+  left: -110px;
+  background: var(--brand-blue);
+  animation: drift-1 22s ease-in-out infinite alternate;
+}
+
+.blob-2 {
+  width: 380px;
+  height: 380px;
+  top: 20px;
+  right: -140px;
+  background: var(--brand-pink);
+  animation: drift-2 26s ease-in-out infinite alternate;
+}
+
+.blob-3 {
+  width: 320px;
+  height: 320px;
+  bottom: -180px;
+  left: 32%;
+  background: var(--brand-teal);
+  animation: drift-3 19s ease-in-out infinite alternate;
+}
+
+@keyframes drift-1 {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(60px, 40px) scale(1.1);
+  }
+}
+
+@keyframes drift-2 {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(-55px, 55px) scale(0.94);
+  }
+}
+
+@keyframes drift-3 {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(45px, -35px) scale(1.08);
+  }
+}
+
+.confetti-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob {
+    animation: none;
+  }
 }
 
 .hero-grid {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
-  gap: 48px;
+  gap: 56px;
   align-items: center;
 }
 
@@ -47,10 +136,30 @@
   box-shadow: var(--shadow-card);
 }
 
+.hero-card {
+  animation: card-float 5s ease-in-out infinite;
+}
+
+@keyframes card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-card {
+    animation: none;
+  }
+}
+
 /* Logos strip */
 
 .logos-strip {
-  padding: 28px 0;
+  padding: 34px 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -62,12 +171,7 @@
   text-transform: uppercase;
   color: var(--ink-faint);
   margin-bottom: 14px;
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  text-align: center;
 }
 
 .chip {
@@ -80,10 +184,46 @@
   color: var(--ink-soft);
 }
 
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  animation: marquee-scroll 26s linear infinite;
+}
+
+.marquee-track .chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* Generic sections */
 
 .section {
-  padding: 64px 0;
+  padding: 96px 0;
 }
 
 .section-alt {
@@ -94,7 +234,7 @@
 
 .section h2 {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 44px;
 }
 
 /* How it works */
@@ -102,14 +242,14 @@
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 32px;
 }
 
 .how-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 28px 28px 8px;
+  padding: 32px 32px 10px;
 }
 
 .step-kicker {
@@ -164,14 +304,14 @@
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 24px;
 }
 
 .bento-card {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 26px;
+  padding: 28px;
 }
 
 .bento-large {
@@ -202,7 +342,7 @@
 .pricing-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  gap: 56px;
   align-items: center;
 }
 
