@@ -8,7 +8,7 @@ product spec you were handed) for the full design; this covers setup only.
 ```bash
 npm install
 cp .env.example .env   # fill in DATABASE_URL, JWT_SECRET, FRONTEND_URL
-npm run migrate         # creates all tables (idempotent — CREATE TABLE IF NOT EXISTS)
+npm run migrate         # creates/updates all tables (idempotent, safe to rerun on every boot)
 npm start                # or `npm run dev` for auto-restart on change
 ```
 
@@ -105,6 +105,16 @@ actually get a `role: admin` token to call these with.
 
 ## Notes for whoever picks this up next
 
+- **Adding a column to an existing table needs an explicit `ALTER TABLE ...
+  ADD COLUMN IF NOT EXISTS`, not just an edit to that table's `CREATE TABLE
+  IF NOT EXISTS` block.** `CREATE TABLE IF NOT EXISTS` only checks whether
+  the table exists — on a database where it already does (any deployed
+  environment past its first migration), that CREATE is a silent no-op and
+  new columns never get added, breaking whatever route needs them with
+  "column ... does not exist" until someone notices. `payments.coupon_id`
+  and `payments.view_threshold` already hit exactly this once — see the
+  `ALTER TABLE payments ...` lines in `schema.sql` for the fix and the
+  pattern to repeat next time a column gets added to a pre-existing table.
 - **File uploads are local disk** (`uploads/`, served at `/uploads/...`).
   Most hosts wipe local disk on redeploy — move to S3/R2 before real launch.
 - **Payments are stubbed.** `POST /payments/listings/:id/checkout` and

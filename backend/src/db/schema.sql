@@ -125,6 +125,19 @@ CREATE TABLE IF NOT EXISTS payments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- `CREATE TABLE IF NOT EXISTS` above only guards table-level creation — on a
+-- database where `payments` already existed from before coupon_id/
+-- view_threshold were added to this schema, that CREATE is a silent no-op
+-- and those two columns never get added, breaking every checkout with
+-- "column ... does not exist" until fixed by hand. These explicit ADD
+-- COLUMN IF NOT EXISTS statements are redundant (and harmless) on a fresh
+-- database where the CREATE TABLE above already included them, but they're
+-- what actually bring an existing deployed database up to date on its next
+-- migrate run. Any future column added to an existing table needs the same
+-- treatment — don't rely on editing the CREATE TABLE block alone.
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS coupon_id INTEGER REFERENCES coupons(id) ON DELETE SET NULL;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS view_threshold INTEGER;
+
 CREATE INDEX IF NOT EXISTS idx_payments_listing ON payments(listing_id);
 CREATE INDEX IF NOT EXISTS idx_payments_owner ON payments(owner_id);
 
