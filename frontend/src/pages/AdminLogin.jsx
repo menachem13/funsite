@@ -50,7 +50,7 @@ export default function AdminLogin() {
       <div className="auth-card card">
         <Link className="logo" to="/">
           <LogoMark />
-          funsite
+          fun<span className="logo-accent">all</span>
         </Link>
         <h1>Admin login</h1>
         <p className="auth-subtitle">

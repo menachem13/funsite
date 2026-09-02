@@ -35,7 +35,7 @@ export default function Login() {
       <div className="auth-card card">
         <Link className="logo" to="/">
           <LogoMark />
-          funsite
+          fun<span className="logo-accent">all</span>
         </Link>
         <h1>Welcome back</h1>
         <p className="auth-subtitle">Log in to your renter or owner account.</p>

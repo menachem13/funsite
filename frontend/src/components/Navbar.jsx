@@ -19,7 +19,7 @@ export default function Navbar() {
       <div className="container header-inner">
         <Link className="logo" to="/" onClick={() => setMenuOpen(false)}>
           <LogoMark />
-          funsite
+          fun<span className="logo-accent">all</span>
         </Link>
 
         <button

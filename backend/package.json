@@ -1,7 +1,7 @@
 {
-  "name": "funsite-backend",
+  "name": "funall-backend",
   "version": "1.0.0",
-  "description": "Funsite API — two-sided marketplace for event attraction rentals",
+  "description": "Funall API — two-sided marketplace for event attraction rentals",
   "private": true,
   "main": "src/server.js",
   "type": "commonjs",

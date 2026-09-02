@@ -99,7 +99,7 @@ async function issueNewOtp() {
 
   await sendMail({
     to: config.adminOtpEmails,
-    subject: 'Funsite admin login code',
+    subject: 'Funall admin login code',
     text: `Your admin login code is ${code}. It expires in ${OTP_TTL_MINUTES} minutes.\n\nIf you didn't request this, ignore it — no one can act on it without your admin username too.`,
   });
 }

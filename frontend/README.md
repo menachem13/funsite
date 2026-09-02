@@ -1,4 +1,4 @@
-# Funsite frontend
+# Funall frontend
 
 React (Vite, no TypeScript) single-page app — the actual product, talking to
 the API in `../backend`. Not a marketing page with a separate app bolted on;

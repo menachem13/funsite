@@ -1,8 +1,8 @@
 import { useId } from "react";
 
-/** The Funsite "F" mark — gradient ribbon logo, reused in the nav, footer, and auth pages. */
-export default function LogoMark({ size = 28 }) {
-  // Gradient ids must be unique per instance — two logos on one page (e.g.
+/** The Funall funnel mark — gradient twisted-funnel icon, reused in the nav, footer, and auth pages. */
+export default function LogoMark({ size = 34 }) {
+  // Gradient id must be unique per instance — two logos on one page (e.g.
   // nav + footer) would otherwise share <defs> ids, which is invalid SVG.
   const id = useId();
 
@@ -16,27 +16,24 @@ export default function LogoMark({ size = 28 }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={`stem${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#4F63F5" />
-          <stop offset="55%" stopColor="#3A6FF2" />
-          <stop offset="100%" stopColor="#17C9B4" />
-        </linearGradient>
-        <linearGradient id={`top${id}`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#4F63F5" />
-          <stop offset="100%" stopColor="#8B4FF2" />
-        </linearGradient>
-        <linearGradient id={`mid${id}`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#FF5E7A" />
-          <stop offset="100%" stopColor="#FF3E9E" />
+        <linearGradient id={`funnel${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#6D4AEB" />
+          <stop offset="50%" stopColor="#FF3E8E" />
+          <stop offset="100%" stopColor="#FF9E4F" />
         </linearGradient>
       </defs>
       <path
-        d="M46 16 L46 70 C46 80 40 86 30 86 C22 86 16 81 16 73 L16 38 C16 26 25 16 38 16 Z"
-        fill={`url(#stem${id})`}
+        d="M 4 12
+           L 96 12
+           C 96 19, 70 22, 60 32
+           C 74 40, 80 46, 68 56
+           C 58 64, 54 72, 50 96
+           C 46 72, 42 64, 32 56
+           C 20 46, 26 40, 40 32
+           C 30 22, 4 19, 4 12
+           Z"
+        fill={`url(#funnel${id})`}
       />
-      <path d="M30 16 L76 16 L92 29 L76 42 L30 42 Z" fill={`url(#top${id})`} />
-      <path d="M30 47 L66 47 L80 59 L66 71 L30 71 Z" fill={`url(#mid${id})`} />
-      <circle cx="70" cy="82" r="8.5" fill="#17C9B4" />
     </svg>
   );
 }

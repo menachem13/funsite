@@ -1,4 +1,4 @@
--- Funsite database schema (PostgreSQL)
+-- Funall database schema (PostgreSQL)
 
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,

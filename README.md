@@ -1,4 +1,4 @@
-# Funsite
+# Funall
 
 Two-sided marketplace: owners of bounce houses, photo booths, carousels, and
 similar event attractions list them for a flat fee; renters browse, filter,
@@ -85,7 +85,7 @@ configured with `base = "frontend"`, `command = "npm run build"`, and
 for one environment variable it can't know in advance:
 
 - **`VITE_API_URL`** — the backend's URL from the Render step above, with
-  `/api` on the end (e.g. `https://funsite-api-xxxx.onrender.com/api`). Set
+  `/api` on the end (e.g. `https://your-service-name.onrender.com/api`). Set
   it under Site settings → Environment variables, then trigger a redeploy —
   Vite bakes this in at *build* time, so changing it always needs a rebuild,
   not just a restart.
@@ -108,6 +108,6 @@ certs for custom domains automatically).
 
 See `backend/README.md` for backend-specific notes. Not built at all yet:
 real payment processing (Stripe — the frontend's checkout flow completes the
-existing stub instead, clearly labeled as a demo payment), cloud file
-storage, structured/geocoded location, notifications, password reset, and
-rate limiting — tracked in the product spec.
+existing stub instead, clearly labeled as a demo payment), structured/
+geocoded location, notifications, password reset, and rate limiting —
+tracked in the product spec.

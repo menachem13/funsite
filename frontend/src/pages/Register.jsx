@@ -41,7 +41,7 @@ export default function Register() {
       <div className="auth-card card">
         <Link className="logo" to="/">
           <LogoMark />
-          funsite
+          fun<span className="logo-accent">all</span>
         </Link>
         <h1>Create your account</h1>
         <p className="auth-subtitle">Free for renters. Owners list for $100 / 6 months.</p>

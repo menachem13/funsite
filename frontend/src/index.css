@@ -10,6 +10,7 @@
   --brand-purple: #8b4ff2;
   --brand-pink: #ff3e8e;
   --brand-teal: #17c9b4;
+  --brand-orange: #ff9e4f;
 
   --primary: #4f63f5;
   --primary-gradient: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple) 100%);
@@ -424,9 +425,16 @@ textarea {
 }
 
 .logo-mark {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
+}
+
+.logo-accent {
+  background: linear-gradient(90deg, var(--brand-pink), var(--brand-orange));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* Spinner */

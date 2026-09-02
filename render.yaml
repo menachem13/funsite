@@ -3,7 +3,7 @@
 # in by hand in the Render dashboard after you create the Supabase project.
 services:
   - type: web
-    name: funsite-api
+    name: funall-api
     runtime: node
     rootDir: backend
     plan: free

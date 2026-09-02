@@ -9,15 +9,15 @@ export default function Footer() {
         <div className="footer-brand">
           <Link className="logo" to="/">
             <LogoMark />
-            funsite
+            fun<span className="logo-accent">all</span>
           </Link>
           <p className="tagline">
             <span className="dash dash-left" />
-            the site for fun
+            as a <span className="tagline-highlight">&ldquo;funnel&rdquo;</span> for your entertainment
             <span className="dash dash-right" />
           </p>
         </div>
-        <p className="footer-copy">&copy; {new Date().getFullYear()} Funsite. All rights reserved.</p>
+        <p className="footer-copy">&copy; {new Date().getFullYear()} Funall. All rights reserved.</p>
       </div>
     </footer>
   );

@@ -45,6 +45,11 @@
   background: linear-gradient(90deg, var(--brand-pink), var(--brand-purple));
 }
 
+.tagline-highlight {
+  color: var(--brand-pink);
+  font-weight: 700;
+}
+
 .footer-copy {
   margin: 0;
   font-size: 0.85rem;

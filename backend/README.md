@@ -1,6 +1,6 @@
-# Funsite API
+# Funall API
 
-Node.js + Express + PostgreSQL backend for Funsite. See `/spec` (or the
+Node.js + Express + PostgreSQL backend for Funall. See `/spec` (or the
 product spec you were handed) for the full design; this covers setup only.
 
 ## Setup

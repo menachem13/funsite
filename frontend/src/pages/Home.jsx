@@ -84,7 +84,7 @@ export default function Home() {
       <section className="section" id="how-it-works">
         <div className="container">
           <Reveal as="h2" className="section-title">
-            How Funsite works
+            How Funall works
           </Reveal>
           <div className="two-col">
             <Reveal className="how-card">
