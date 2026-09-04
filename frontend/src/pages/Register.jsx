@@ -5,6 +5,8 @@ import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import "./Auth.css";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -14,12 +16,17 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  const emailValid = EMAIL_PATTERN.test(email);
+  const passwordValid = password.length >= 8;
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (password.length < 8) {
+    if (!passwordValid) {
       setError("Password must be at least 8 characters.");
       return;
     }
@@ -69,9 +76,16 @@ export default function Register() {
               type="email"
               autoComplete="email"
               required
+              className={emailTouched ? (emailValid ? "input-valid" : "input-invalid") : ""}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setEmailTouched(true)}
             />
+            {emailTouched && (
+              <p className={`field-hint ${emailValid ? "hint-valid" : "hint-invalid"}`}>
+                {emailValid ? "✓ Looks good" : "Enter a valid email address"}
+              </p>
+            )}
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>
@@ -81,10 +95,14 @@ export default function Register() {
               autoComplete="new-password"
               required
               minLength={8}
+              className={passwordTouched ? (passwordValid ? "input-valid" : "input-invalid") : ""}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => setPasswordTouched(true)}
             />
-            <p className="field-hint">At least 8 characters.</p>
+            <p className={`field-hint ${passwordTouched ? (passwordValid ? "hint-valid" : "hint-invalid") : ""}`}>
+              {passwordTouched && passwordValid ? "✓ " : ""}At least 8 characters.
+            </p>
           </div>
           <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
             {loading ? <span className="spinner" /> : `Sign up as ${role === "owner" ? "an owner" : "a renter"}`}

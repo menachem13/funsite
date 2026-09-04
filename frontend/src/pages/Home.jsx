@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Reveal from "../components/Reveal";
@@ -55,10 +55,12 @@ const FAQS = [
 export default function Home() {
   const { user } = useAuth();
   const ownerCta = user?.role === "owner" ? "/dashboard" : "/register";
+  const heroRef = useRef(null);
+  const showStickyCta = useScrolledPast(heroRef);
 
   return (
     <div className="home-page">
-      <section className="hero">
+      <section className="hero" ref={heroRef}>
         <div className="hero-bg" aria-hidden="true">
           <span className="blob blob-1" />
           <span className="blob blob-2" />
@@ -287,8 +289,32 @@ export default function Home() {
           </Link>
         </div>
       </Reveal>
+
+      {showStickyCta && (
+        <div className="mobile-sticky-cta">
+          <Link to="/browse" className="btn btn-primary btn-block">
+            Browse attractions
+          </Link>
+        </div>
+      )}
     </div>
   );
+}
+
+function useScrolledPast(ref) {
+  const [scrolledPast, setScrolledPast] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      if (!ref.current) return;
+      setScrolledPast(ref.current.getBoundingClientRect().bottom < 0);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [ref]);
+
+  return scrolledPast;
 }
 
 function LiveStatDemo() {
