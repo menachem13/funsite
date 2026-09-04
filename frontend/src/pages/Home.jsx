@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Reveal from "../components/Reveal";
@@ -6,6 +7,50 @@ import { useCountUp } from "../hooks/useCountUp";
 import "./Home.css";
 
 const CATEGORIES = ["Inflatables", "Photo booths", "Carousels", "Dunk tanks", "Face painting", "Game trailers"];
+
+const TESTIMONIALS = [
+  {
+    role: "Owner perspective",
+    quote:
+      "This is where a real owner's review will go — for example, how quickly they got their first booking after listing.",
+  },
+  {
+    role: "Renter perspective",
+    quote:
+      "This is where a real renter's review will go — for example, how easy it was to find and message an owner.",
+  },
+  {
+    role: "General experience",
+    quote: "This is where a real review about ease of use, response times, or booking confidence will go.",
+  },
+];
+
+const FAQS = [
+  {
+    q: "Is Funall free to use?",
+    a: "Yes, for renters. Browsing, filtering, and messaging owners is always free. Owners pay a flat $100 every 6 months to list — no commission on what you charge, ever.",
+  },
+  {
+    q: "How does “Featured Today” work?",
+    a: "Featured rotates fairly among paid, active listings based on who's waited longest since their last turn — not who's spent the most or has the most views.",
+  },
+  {
+    q: "Do I need an account to browse?",
+    a: "No — you can browse and view listings without signing up. You'll need a free account to message an owner.",
+  },
+  {
+    q: "Can I cancel or remove my listing?",
+    a: "Yes, owners can remove a listing at any time from their dashboard.",
+  },
+  {
+    q: "What happens when my listing's 6 months are up?",
+    a: "Your listing automatically goes inactive and drops out of the Featured rotation until you renew — there are no surprise auto-charges.",
+  },
+  {
+    q: "How do I know a listing is trustworthy?",
+    a: "Every listing shows real view counts and message activity, and you can message the owner directly to ask questions before booking.",
+  },
+];
 
 export default function Home() {
   const { user } = useAuth();
@@ -81,6 +126,58 @@ export default function Home() {
         </div>
       </Reveal>
 
+      <Reveal as="section" className="section trust-section">
+        <div className="container">
+          <p className="eyebrow trust-eyebrow">Sample metrics — preview</p>
+          <div className="trust-grid">
+            <div className="trust-tile">
+              <p className="trust-number">1,200+*</p>
+              <p className="trust-label">Listing views</p>
+            </div>
+            <div className="trust-tile">
+              <p className="trust-number">300+*</p>
+              <p className="trust-label">Messages sent</p>
+            </div>
+            <div className="trust-tile">
+              <p className="trust-number">98%*</p>
+              <p className="trust-label">Owner response rate</p>
+            </div>
+          </div>
+          <p className="trust-footnote">*Sample numbers shown for layout preview — swap in real metrics once available.</p>
+        </div>
+      </Reveal>
+
+      <section className="section section-alt">
+        <div className="container">
+          <Reveal as="h2" className="section-title">
+            Everything you need, nothing you don't
+          </Reveal>
+          <div className="bento-grid">
+            <Reveal as="div" className="bento-card bento-large">
+              <h3>Live interest, not guesswork</h3>
+              <p>Every listing shows a real-time view count with a pulsing live indicator — owners see demand as it happens.</p>
+              <LiveStatDemo />
+            </Reveal>
+            <Reveal className="bento-card" delay={80}>
+              <h3>Audience filters</h3>
+              <p>Age range, gender suitability, and attendant requirements — set once per listing, filterable by every renter.</p>
+            </Reveal>
+            <Reveal className="bento-card" delay={160}>
+              <h3>Fair featured rotation</h3>
+              <p>Featured Today goes to whoever's waited longest — never who paid the most. Same flat fee, same shot.</p>
+            </Reveal>
+            <Reveal className="bento-card" delay={80}>
+              <h3>Direct messaging</h3>
+              <p>No forms, no phone tag. Renters message owners straight from a listing and get a real inbox.</p>
+            </Reveal>
+            <Reveal className="bento-card" delay={160}>
+              <h3>Owner analytics</h3>
+              <p>A 14-day view breakdown, message counts, and featured history for every listing you run.</p>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       <section className="section" id="how-it-works">
         <div className="container">
           <Reveal as="h2" className="section-title">
@@ -125,37 +222,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section section-alt">
-        <div className="container">
-          <Reveal as="h2" className="section-title">
-            Everything you need, nothing you don't
-          </Reveal>
-          <div className="bento-grid">
-            <Reveal as="div" className="bento-card bento-large">
-              <h3>Live interest, not guesswork</h3>
-              <p>Every listing shows a real-time view count with a pulsing live indicator — owners see demand as it happens.</p>
-              <LiveStatDemo />
-            </Reveal>
-            <Reveal className="bento-card" delay={80}>
-              <h3>Audience filters</h3>
-              <p>Age range, gender suitability, and attendant requirements — set once per listing, filterable by every renter.</p>
-            </Reveal>
-            <Reveal className="bento-card" delay={160}>
-              <h3>Fair featured rotation</h3>
-              <p>Featured Today goes to whoever's waited longest — never who paid the most. Same flat fee, same shot.</p>
-            </Reveal>
-            <Reveal className="bento-card" delay={80}>
-              <h3>Direct messaging</h3>
-              <p>No forms, no phone tag. Renters message owners straight from a listing and get a real inbox.</p>
-            </Reveal>
-            <Reveal className="bento-card" delay={160}>
-              <h3>Owner analytics</h3>
-              <p>A 14-day view breakdown, message counts, and featured history for every listing you run.</p>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
       <Reveal as="section" className="section pricing-section" id="pricing">
         <div className="container pricing-inner">
           <div className="pricing-copy">
@@ -179,6 +245,39 @@ export default function Home() {
         </div>
       </Reveal>
 
+      <section className="section section-alt">
+        <div className="container">
+          <Reveal as="h2" className="section-title">
+            What people are saying
+          </Reveal>
+          <p className="testimonials-note">
+            Funall is brand new — these cards are sample placeholders, not real reviews yet.
+          </p>
+          <div className="testimonial-grid">
+            {TESTIMONIALS.map((t, i) => (
+              <Reveal as="div" className="testimonial-card" delay={i * 80} key={t.role}>
+                <span className="testimonial-badge">Sample</span>
+                <p className="testimonial-quote">&ldquo;{t.quote}&rdquo;</p>
+                <p className="testimonial-role">{t.role}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" id="faq">
+        <div className="container">
+          <Reveal as="h2" className="section-title">
+            Frequently asked questions
+          </Reveal>
+          <div className="faq-list">
+            {FAQS.map((item, i) => (
+              <FaqItem key={item.q} question={item.q} answer={item.a} defaultOpen={i === 0} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       <Reveal as="section" className="section cta-section">
         <div className="container cta-inner">
           <h2>Ready to see what's available near you?</h2>
@@ -200,6 +299,19 @@ function LiveStatDemo() {
         <span className="live-dot" aria-hidden="true" />
         <span className="count">{value}</span> views this week
       </span>
+    </div>
+  );
+}
+
+function FaqItem({ question, answer, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`faq-item ${open ? "faq-open" : ""}`}>
+      <button className="faq-question" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        {question}
+        <span className="faq-icon" aria-hidden="true" />
+      </button>
+      {open && <p className="faq-answer">{answer}</p>}
     </div>
   );
 }

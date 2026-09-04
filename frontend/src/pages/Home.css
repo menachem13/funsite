@@ -391,6 +391,179 @@
   font-weight: 700;
 }
 
+/* Trust / social proof bar (sample data — see copy) */
+
+.trust-section {
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+
+.trust-eyebrow {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.trust-tile {
+  text-align: center;
+}
+
+.trust-number {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.trust-label {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.trust-footnote {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  margin: 20px 0 0;
+}
+
+/* Testimonials (sample placeholders) */
+
+.testimonials-note {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  margin: -24px auto 40px;
+  max-width: 480px;
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.testimonial-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 28px;
+}
+
+.testimonial-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  margin-bottom: 16px;
+}
+
+.testimonial-quote {
+  font-style: italic;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  max-width: 45ch;
+}
+
+.testimonial-role {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+/* FAQ accordion */
+
+.faq-list {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 18px 22px;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.faq-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.faq-icon::before,
+.faq-icon::after {
+  content: "";
+  position: absolute;
+  background: var(--primary);
+  border-radius: 2px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.faq-icon::before {
+  width: 12px;
+  height: 2px;
+}
+
+.faq-icon::after {
+  width: 2px;
+  height: 12px;
+  transition: transform 0.15s ease;
+}
+
+.faq-open .faq-icon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  opacity: 0;
+}
+
+.faq-answer {
+  padding: 0 22px 20px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  max-width: 65ch;
+}
+
 /* CTA */
 
 .cta-section {
@@ -407,6 +580,12 @@
   .two-col,
   .pricing-inner {
     grid-template-columns: 1fr;
+  }
+
+  .trust-grid,
+  .testimonial-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .bento-grid {
