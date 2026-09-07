@@ -63,9 +63,28 @@
   color: var(--ink-soft);
 }
 
+.logo-he {
+  direction: rtl;
+}
+
+.logo-wordmark-he {
+  height: 22px;
+  width: auto;
+  display: block;
+}
+
 @media (max-width: 780px) {
   .nav-toggle {
     display: flex;
+    order: 2;
+  }
+
+  .logo-he {
+    order: 1;
+  }
+
+  .logo-wordmark-he {
+    height: 18px;
   }
 
   .site-nav {

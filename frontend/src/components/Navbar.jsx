@@ -81,6 +81,11 @@ export default function Navbar() {
             )}
           </div>
         </nav>
+
+        <Link className="logo logo-he" to="/" onClick={() => setMenuOpen(false)}>
+          <LogoMark />
+          <img className="logo-wordmark-he" src="/funall-wordmark-he.png" alt="פאנאל" />
+        </Link>
       </div>
     </header>
   );
