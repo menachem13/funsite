@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Reveal from "../components/Reveal";
 import ConfettiBurst from "../components/ConfettiBurst";
+import Fireworks from "../components/Fireworks";
 import { useCountUp } from "../hooks/useCountUp";
 import "./Home.css";
 
@@ -65,6 +66,7 @@ export default function Home() {
           <span className="blob blob-1" />
           <span className="blob blob-2" />
           <span className="blob blob-3" />
+          <Fireworks />
           <ConfettiBurst />
         </div>
 

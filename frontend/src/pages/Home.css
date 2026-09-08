@@ -74,7 +74,8 @@
   }
 }
 
-.confetti-canvas {
+.confetti-canvas,
+.fireworks-canvas {
   position: absolute;
   inset: 0;
   width: 100%;

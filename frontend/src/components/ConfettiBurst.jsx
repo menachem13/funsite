@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 
 const COLORS = ["#4F63F5", "#8B4FF2", "#FF3E8E", "#17C9B4", "#FF9E4F"];
-const PARTICLE_COUNT = 90;
-const DURATION_MS = 2800;
+const PARTICLE_COUNT = 160;
+const DURATION_MS = 3200;
 
 /**
  * A one-time confetti burst that plays when the hero first mounts, then
@@ -36,16 +36,16 @@ export default function ConfettiBurst() {
 
     const particles = Array.from({ length: PARTICLE_COUNT }, () => {
       const angle = Math.random() * Math.PI - Math.PI * 1.5; // upward spread
-      const speed = 4 + Math.random() * 7;
+      const speed = 5 + Math.random() * 9;
       return {
-        x: originX + (Math.random() - 0.5) * 120,
+        x: originX + (Math.random() - 0.5) * 200,
         y: 40 + Math.random() * 20,
-        vx: Math.cos(angle) * speed * 0.6,
-        vy: Math.sin(angle) * speed - 2,
-        size: 5 + Math.random() * 5,
+        vx: Math.cos(angle) * speed * 0.7,
+        vy: Math.sin(angle) * speed - 3,
+        size: 5 + Math.random() * 6,
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
         rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 12,
+        rotationSpeed: (Math.random() - 0.5) * 14,
         shape: Math.random() > 0.5 ? "rect" : "circle",
       };
     });
