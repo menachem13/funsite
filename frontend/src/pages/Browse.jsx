@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ListingCard from "../components/ListingCard";
 import { api } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
@@ -18,8 +19,16 @@ const DEFAULT_FILTERS = {
 
 export default function Browse() {
   const { t } = useLanguage();
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [searchInput, setSearchInput] = useState("");
+  // Seeded from the URL on first render so links like /browse?category=carousel
+  // (the homepage category cards) or /browse?q=... (the hero search) actually
+  // land with that filter applied, not just a URL that looks right.
+  const [searchParams] = useSearchParams();
+  const [filters, setFilters] = useState(() => ({
+    ...DEFAULT_FILTERS,
+    category: searchParams.get("category") || "",
+    q: searchParams.get("q") || "",
+  }));
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
   const [listings, setListings] = useState([]);
   const [featured, setFeatured] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -178,7 +187,7 @@ export default function Browse() {
       ) : (
         <div className="listing-grid">
           {listings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} featured={featured?.id === listing.id} />
+            <ListingCard key={listing.id} listing={listing} cover={listing.cover} featured={featured?.id === listing.id} />
           ))}
         </div>
       )}

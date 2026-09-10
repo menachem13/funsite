@@ -13,6 +13,8 @@ import ListingForm from "./pages/dashboard/ListingForm";
 import Inbox from "./pages/Inbox";
 import AdminLogin from "./pages/AdminLogin";
 import AdminCoupons from "./pages/AdminCoupons";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -78,6 +80,9 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

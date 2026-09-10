@@ -38,6 +38,17 @@ export const translations = {
     footer: {
       tagline: "as a “funnel” for your entertainment",
       copyright: "All rights reserved.",
+      exploreHeading: "Explore",
+      browse: "Browse attractions",
+      categories: "Categories",
+      howItWorks: "How it works",
+      providersHeading: "For providers",
+      listAttraction: "List your attraction",
+      pricing: "Pricing",
+      funallHeading: "Funall",
+      faq: "FAQ",
+      privacy: "Privacy",
+      terms: "Terms",
     },
     home: {
       eyebrow: "Now booking in your area",
@@ -56,6 +67,24 @@ export const translations = {
       attendantIncluded: "Attendant included",
       featuredToday: "Featured Today",
       logosStripLabel: "Built for the attractions renters actually search for",
+      heroSearchPlaceholder: "What are you looking for?",
+      heroSearchButton: "Find Entertainment",
+      categoriesTitle: "Browse by category",
+      categoriesSubtitle: "Know exactly where to click — pick a category to jump straight to it.",
+      categoryCardCta: "View options",
+      categoryDescriptions: {
+        inflatable: "Bounce houses & inflatable obstacle courses",
+        "photo booth": "Fun photo booths for parties & events",
+        carousel: "Rides for younger kids and family fun",
+        "dunk tank": "A classic crowd-pleaser for warm-weather events",
+        "face painting": "Face painters for birthdays & festivals",
+        "game trailer": "Mobile game trucks & trailers",
+      },
+      recentTitle: "Recently listed on Funall",
+      recentSubtitle: "Real attractions, straight from the owners who run them.",
+      recentViewAll: "View all attractions",
+      recentEmptyTitle: "No attractions listed yet",
+      recentEmptyBody: "Be the first owner to list an attraction on Funall.",
       categories: {
         inflatables: "Inflatables",
         photoBooths: "Photo booths",
@@ -355,6 +384,50 @@ export const translations = {
       body: "That page doesn't exist, or has moved.",
       backHome: "Back home",
     },
+    privacy: {
+      title: "Privacy Policy",
+      intro:
+        "Funall is a marketplace connecting event attraction owners and renters. This page explains what information we collect and how it's used.",
+      section1Title: "Information we collect",
+      section1Body:
+        "When you create an account, we collect your name, email address, and password (stored securely, never in plain text). Owners' listings include the details and photos they choose to upload. Messages sent through the platform are stored so both sides of a conversation can see it.",
+      section2Title: "How we use it",
+      section2Body:
+        "We use this information to run the marketplace: showing listings, delivering messages between renters and owners, and keeping your account secure. We don't sell your personal information to third parties.",
+      section3Title: "Payments",
+      section3Body:
+        "Funall does not directly store your payment card details. Listing fees are flat and charged per listing period, described at checkout.",
+      section4Title: "Cookies & local storage",
+      section4Body:
+        "Funall stores your login session and language preference (English/Yiddish) in your browser's local storage. This stays on your device and isn't shared with other visitors.",
+      section5Title: "Changes to this policy",
+      section5Body: "This policy may be updated as Funall grows. Check back here for changes.",
+      disclaimer:
+        "This is a first draft written to match how Funall actually works today — it hasn't been reviewed by a lawyer. Treat it as a starting point, not final legal advice.",
+    },
+    terms: {
+      title: "Terms of Service",
+      intro: "By using Funall, you agree to these terms.",
+      section1Title: "What Funall is",
+      section1Body:
+        "Funall is a marketplace that connects people planning events with local attraction owners — bounce houses, photo booths, carousels, and more. We don't own, operate, or inspect the attractions listed here.",
+      section2Title: "Owner responsibilities",
+      section2Body:
+        "Owners are responsible for the accuracy of their listings and for delivering what they advertise, safely and as described.",
+      section3Title: "Renter responsibilities",
+      section3Body:
+        "Renters are responsible for communicating clearly with owners and confirming details — availability, pricing, safety requirements — directly before booking.",
+      section4Title: "Fees",
+      section4Body:
+        "Owners pay a flat listing fee to publish a listing, described at checkout. Funall does not take a commission on what owners charge renters.",
+      section5Title: "Funall isn't a party to your booking",
+      section5Body:
+        "Funall is not a party to any booking or agreement made between an owner and a renter, and isn't responsible for disputes between them.",
+      section6Title: "Account suspension",
+      section6Body: "We may suspend or remove accounts or listings that violate these terms or misuse the platform.",
+      disclaimer:
+        "This is a first draft written to match how Funall actually works today — it hasn't been reviewed by a lawyer. Treat it as a starting point, not final legal advice.",
+    },
     languageToggle: {
       label: "Language",
       english: "English",
@@ -390,6 +463,17 @@ export const translations = {
     footer: {
       tagline: "ווי אַ „טרעכטער” פֿאַר אײַער אונטערהאַלטונג",
       copyright: "אַלע רעכט פֿאָרבעהאַלטן.",
+      exploreHeading: "קוקט אַרום",
+      browse: "קוקט אויף אַטראַקציעס",
+      categories: "קאַטעגאָריעס",
+      howItWorks: "ווי עס אַרבעט",
+      providersHeading: "פֿאַר בעלי-בתּים",
+      listAttraction: "רשומ'ען אײַער אַטראַקציע",
+      pricing: "פּרײַזן",
+      funallHeading: "פֿונאָל",
+      faq: "אָפֿט געפֿרעגטע שאלות",
+      privacy: "פּריוואַטקייט",
+      terms: "באַדינגונגען",
     },
     home: {
       eyebrow: "איצט רעזערווירט מען אין אײַער געגנט",
@@ -408,6 +492,24 @@ export const translations = {
       attendantIncluded: "אַן אויפֿזעער אינבאַגריפֿן",
       featuredToday: "הַיינט אויסגעצייכנט",
       logosStripLabel: "געבויט פֿאַר די אַטראַקציעס וואָס דינגערס זוכן טאַקע",
+      heroSearchPlaceholder: "וואָס זוכט איר?",
+      heroSearchButton: "געפֿינט אונטערהאַלטונג",
+      categoriesTitle: "קוקט אַרום לויט קאַטעגאָריע",
+      categoriesSubtitle: "ווייסט גענוי וווּהין צו קליקן — קלײַבט אויס אַ קאַטעגאָריע.",
+      categoryCardCta: "זעט אָפּציעס",
+      categoryDescriptions: {
+        inflatable: "בונס-הײַזער און אויפֿבלאָז-הינדערנישן",
+        "photo booth": "פֿרייליכע פֿאָטאָ-בודקעס פֿאַר יעדער געשעעניש",
+        carousel: "פֿאָר-שפּילן פֿאַר קליינע קינדער און דער גאַנצער משפּחה",
+        "dunk tank": "אַ קלאַסישער חן פֿאַר וואַרעמע טעג",
+        "face painting": "פּנים-מאָלער פֿאַר געבוירן-טעג און פֿעסטיוואַלן",
+        "game trailer": "מאָביל שפּיל-טריילערס",
+      },
+      recentTitle: "לעצטנס גערשומ'עט אויף פֿונאָל",
+      recentSubtitle: "אמת'ע אַטראַקציעס, גלײַך פֿון די בעלי-בתּים וואָס פֿירן זיי.",
+      recentViewAll: "זעט אַלע אַטראַקציעס",
+      recentEmptyTitle: "נאָך קיין אַטראַקציעס נישט רשומ'עט",
+      recentEmptyBody: "זײַט דער ערשטער בעל־הבית צו רשומ'ען אַן אַטראַקציע אויף פֿונאָל.",
       categories: {
         inflatables: "אויפֿבלאָז-אַטראַקציעס",
         photoBooths: "פֿאָטאָ-בודקעס",
@@ -706,6 +808,50 @@ export const translations = {
       title: "דער בלאַט איז נישט געפֿונען געוואָרן",
       body: "דער בלאַט עקזיסטירט נישט, אָדער איז אַוועקגערוקט געוואָרן.",
       backHome: "צוריק אַהיים",
+    },
+    privacy: {
+      title: "פּריוואַטקייט פּאָליטיק",
+      intro:
+        "Funall איז אַ מארק וואָס פֿאַרבינדט אַטראַקציע־בעלי-בתים מיט מיטער. דער בלאַט דערקלערט וואָס אינפֿאָרמאַציע מיר זאַמלען און ווי אַזוי זי ווערט גענוצט.",
+      section1Title: "אינפֿאָרמאַציע וואָס מיר זאַמלען",
+      section1Body:
+        "ווען איר עפֿנט אַ קאָנטע, זאַמלען מיר אײַער נאָמען, אימעיל אַדרעס, און פּאַראָל (זיכער אויפֿגעהיטן, קיינמאָל נישט אין פּשוטן טעקסט). בעלי-בתים'ס ליסטינגען אַנטהאַלטן די פּרטים און בילדער וואָס זיי קלײַבן אויף צו אַרויפֿלאָדן. אָנזאָגן געשיקט דורך דער פּלאַטפֿאָרמע ווערן אויפֿגעהיטן אַזוי ביידע זײַטן פֿון אַ שמועס קענען עס זען.",
+      section2Title: "ווי מיר נוצן עס",
+      section2Body:
+        "מיר נוצן די אינפֿאָרמאַציע צו פֿירן דעם מארק: ווײַזן ליסטינגען, אָפּליוועַרן אָנזאָגן צווישן מיטער און בעלי-בתים, און האַלטן אײַער קאָנטע זיכער. מיר פֿאַרקויפֿן נישט אײַער פּערזענלעכע אינפֿאָרמאַציע צו דריטע פּארטייען.",
+      section3Title: "צאָלונגען",
+      section3Body:
+        "Funall היט נישט דירעקט אײַערע צאָלקאַרטע פּרטים. ליסטינג־אָפּצאָלן זענען פֿעסט און ווערן אָפּגערעכנט לויטן ליסטינג־צײַט, באַשריבן ביים אויסקאַסע.",
+      section4Title: "קוקיס און לאָקאַלע שפּײַכערונג",
+      section4Body:
+        "Funall היט אײַער אַרײַנלאָג און שפּראַך־פּרעפֿערענץ (ענגליש/יידיש) אין אײַער בלעטערער'ס לאָקאַלע שפּײַכערונג. דאָס בלײַבט אויף אײַער געצײַג און ווערט נישט צעטיילט מיט אַנדערע וויזיטארן.",
+      section5Title: "ענדערונגען צו דער פּאָליטיק",
+      section5Body: "די פּאָליטיק קען ווערן דערהײַנטיקט ווי Funall וואַקסט. קומט צוריק אַהער פֿאַר ענדערונגען.",
+      disclaimer:
+        "דאָס איז אַ ערשטער דראַפֿט געשריבן צו פּאַסן ווי Funall טאַקע אַרבעט הײַנט — עס איז נישט איבערגעקוקט געוואָרן פֿון אַ אַדוואָקאַט. נעמט עס ווי אַ אָנהייב, נישט ווי לעצטע לעגאַלע עצה.",
+    },
+    terms: {
+      title: "באַדינגונגען פֿון באַנוץ",
+      intro: "מיט די נוצונג פֿון Funall, שטימט איר צו די באַדינגונגען.",
+      section1Title: "וואָס Funall איז",
+      section1Body:
+        "Funall איז אַ מארק וואָס פֿאַרבינדט מענטשן וואָס פּלאַנירן געשעענישן מיט לאָקאַלע אַטראַקציע־בעלי-בתים — היפּ-הײַזער, פֿאָטאָ בודקעס, קאַרוסעלן, און מער. מיר פֿאַרמאָגן, פֿירן, אָדער קאָנטראָלירן נישט די אַטראַקציעס וואָס זענען דאָ אויפֿגעליסט.",
+      section2Title: "בעל-הבית'ס אַחריות",
+      section2Body:
+        "בעלי-בתים זענען פֿאַראַנטוואָרטלעך פֿאַר דער גענויקייט פֿון זייערע ליסטינגען און פֿאַר אָפּליוועַרן וואָס זיי רעקלאַמירן, זיכער און ווי באַשריבן.",
+      section3Title: "מיטער'ס אַחריות",
+      section3Body:
+        "מיטער זענען פֿאַראַנטוואָרטלעך צו קלאָר קאָמוניקירן מיט בעלי-בתים און באַשטעטיקן פּרטים — צוטריטלעכקייט, פּרײַזן, זיכערהייט פֿאָדערונגען — דירעקט איידער בוקינג.",
+      section4Title: "אָפּצאָלן",
+      section4Body:
+        "בעלי-בתים צאָלן אַ פֿעסטע ליסטינג־אָפּצאָל צו פּובליקירן אַ ליסטינג, באַשריבן ביים אויסקאַסע. Funall נעמט נישט קיין קאָמיסיע פֿון וואָס בעלי-בתים רעכענען מיטער.",
+      section5Title: "Funall איז נישט אַ צד אין אײַער בוקינג",
+      section5Body:
+        "Funall איז נישט אַ צד אין קיין בוקינג אָדער אָפּמאַך געמאַכט צווישן אַ בעל-הבית און אַ מיטער, און איז נישט פֿאַראַנטוואָרטלעך פֿאַר קאָנפֿליקטן צווישן זיי.",
+      section6Title: "קאָנטע צוריקהאַלטונג",
+      section6Body: "מיר קענען צוריקהאַלטן אָדער אָפּמעקן קאָנטעס אָדער ליסטינגען וואָס פֿאַרלעצן די באַדינגונגען אָדער מיסברויכן די פּלאַטפֿאָרמע.",
+      disclaimer:
+        "דאָס איז אַ ערשטער דראַפֿט געשריבן צו פּאַסן ווי Funall טאַקע אַרבעט הײַנט — עס איז נישט איבערגעקוקט געוואָרן פֿון אַ אַדוואָקאַט. נעמט עס ווי אַ אָנהייב, נישט ווי לעצטע לעגאַלע עצה.",
     },
     languageToggle: {
       label: "שפּראַך",

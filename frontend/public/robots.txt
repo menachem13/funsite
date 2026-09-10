@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://papaya-parfait-c143ee.netlify.app/sitemap.xml

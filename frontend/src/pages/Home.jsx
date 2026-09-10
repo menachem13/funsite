@@ -1,25 +1,43 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import Reveal from "../components/Reveal";
 import ConfettiBurst from "../components/ConfettiBurst";
 import Fireworks from "../components/Fireworks";
+import ListingCard from "../components/ListingCard";
 import { useCountUp } from "../hooks/useCountUp";
 import "./Home.css";
 
-const CATEGORY_KEYS = ["inflatables", "photoBooths", "carousels", "dunkTanks", "facePainting", "gameTrailers"];
 const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6"];
 const TESTIMONIAL_KEYS = ["testimonial1", "testimonial2", "testimonial3"];
+
+// (icon, backend category value) pairs — the value is what /browse?category=
+// actually filters on, so these must stay in sync with Browse.jsx/ListingForm.jsx.
+const CATEGORY_CARDS = [
+  { icon: "🏰", value: "inflatable" },
+  { icon: "📸", value: "photo booth" },
+  { icon: "🎠", value: "carousel" },
+  { icon: "💦", value: "dunk tank" },
+  { icon: "🎨", value: "face painting" },
+  { icon: "🎮", value: "game trailer" },
+];
 
 export default function Home() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const ownerCta = user?.role === "owner" ? "/dashboard" : "/register";
   const heroRef = useRef(null);
   const showStickyCta = useScrolledPast(heroRef);
+  const [heroSearch, setHeroSearch] = useState("");
 
-  const categories = CATEGORY_KEYS.map((key) => t(`home.categories.${key}`));
+  function handleHeroSearch(e) {
+    e.preventDefault();
+    const params = heroSearch.trim() ? `?q=${encodeURIComponent(heroSearch.trim())}` : "";
+    navigate(`/browse${params}`);
+  }
 
   return (
     <div className="home-page">
@@ -37,10 +55,21 @@ export default function Home() {
             <p className="eyebrow">{t("home.eyebrow")}</p>
             <h1>{t("home.heroTitle")}</h1>
             <p className="lede">{t("home.heroLede")}</p>
+
+            <form className="hero-search" onSubmit={handleHeroSearch} role="search">
+              <input
+                type="search"
+                value={heroSearch}
+                onChange={(e) => setHeroSearch(e.target.value)}
+                placeholder={t("home.heroSearchPlaceholder")}
+                aria-label={t("home.heroSearchPlaceholder")}
+              />
+              <button className="btn btn-primary" type="submit">
+                {t("home.heroSearchButton")}
+              </button>
+            </form>
+
             <div className="hero-actions">
-              <Link to="/browse" className="btn btn-primary">
-                {t("home.browseAttractions")}
-              </Link>
               <Link to={ownerCta} className="btn btn-secondary">
                 {user?.role === "owner" ? t("home.goToDashboard") : t("home.listAttraction")}
               </Link>
@@ -73,20 +102,34 @@ export default function Home() {
         </div>
       </section>
 
-      <Reveal as="section" className="logos-strip">
+      <section className="section" id="categories">
         <div className="container">
-          <p>{t("home.logosStripLabel")}</p>
-        </div>
-        <div className="marquee">
-          <div className="marquee-track">
-            {[...categories, ...categories].map((c, i) => (
-              <span className="chip" key={`${c}-${i}`}>
-                {c}
-              </span>
+          <Reveal as="h2" className="section-title">
+            {t("home.categoriesTitle")}
+          </Reveal>
+          <p className="section-subtitle">{t("home.categoriesSubtitle")}</p>
+          <div className="category-grid">
+            {CATEGORY_CARDS.map((cat, i) => (
+              <Reveal
+                as={Link}
+                to={`/browse?category=${encodeURIComponent(cat.value)}`}
+                className="category-card"
+                delay={(i % 3) * 80}
+                key={cat.value}
+              >
+                <span className="category-icon" aria-hidden="true">
+                  {cat.icon}
+                </span>
+                <h3>{t(`browse.categories.${cat.value}`)}</h3>
+                <p>{t(`home.categoryDescriptions.${cat.value}`)}</p>
+                <span className="category-cta">{t("home.categoryCardCta")} →</span>
+              </Reveal>
             ))}
           </div>
         </div>
-      </Reveal>
+      </section>
+
+      <RecentListings />
 
       <Reveal as="section" className="section trust-section">
         <div className="container">
@@ -250,6 +293,60 @@ export default function Home() {
         </div>
       )}
     </div>
+  );
+}
+
+function RecentListings() {
+  const { t } = useLanguage();
+  const [listings, setListings] = useState(null);
+
+  useEffect(() => {
+    api
+      .get("/listings")
+      .then((d) => setListings(d.listings.slice(0, 6)))
+      .catch(() => setListings([]));
+  }, []);
+
+  return (
+    <section className="section section-alt" id="recent-listings">
+      <div className="container">
+        <Reveal as="h2" className="section-title">
+          {t("home.recentTitle")}
+        </Reveal>
+        <p className="section-subtitle">{t("home.recentSubtitle")}</p>
+
+        {listings === null ? (
+          <div className="center-loading">
+            <span className="spinner spinner-dark" />
+          </div>
+        ) : listings.length === 0 ? (
+          <div className="empty-state card">
+            <p>
+              <strong>{t("home.recentEmptyTitle")}</strong>
+            </p>
+            <p>{t("home.recentEmptyBody")}</p>
+            <Link to="/register" className="btn btn-primary">
+              {t("home.listAttraction")}
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="recent-grid">
+              {listings.map((listing, i) => (
+                <Reveal as="div" delay={(i % 3) * 80} key={listing.id}>
+                  <ListingCard listing={listing} cover={listing.cover} />
+                </Reveal>
+              ))}
+            </div>
+            <div className="recent-view-all">
+              <Link to="/browse" className="btn btn-secondary">
+                {t("home.recentViewAll")}
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
   );
 }
 

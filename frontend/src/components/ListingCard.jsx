@@ -18,7 +18,11 @@ export default function ListingCard({ listing, featured = false, cover }) {
       <div className="listing-card-media">
         {featured && <span className="badge badge-featured">{t("listingCard.featuredToday")}</span>}
         {cover ? (
-          <img src={assetUrl(cover.url)} alt="" loading="lazy" />
+          cover.type === "video" ? (
+            <video src={assetUrl(cover.url)} muted playsInline />
+          ) : (
+            <img src={assetUrl(cover.url)} alt="" loading="lazy" />
+          )
         ) : (
           <div className="media-placeholder" />
         )}

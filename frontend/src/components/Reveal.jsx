@@ -7,7 +7,7 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
  * is a delight-on-scroll touch, not something that should ever gate content
  * behind motion for someone who's opted out of it.
  */
-export default function Reveal({ children, as: Tag = "div", delay = 0, className = "" }) {
+export default function Reveal({ children, as: Tag = "div", delay = 0, className = "", ...rest }) {
   const ref = useRef(null);
   const reducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(reducedMotion);
@@ -33,6 +33,7 @@ export default function Reveal({ children, as: Tag = "div", delay = 0, className
       ref={ref}
       className={`reveal ${visible ? "reveal-visible" : ""} ${className}`}
       style={visible ? { transitionDelay: `${delay}ms` } : undefined}
+      {...rest}
     >
       {children}
     </Tag>
