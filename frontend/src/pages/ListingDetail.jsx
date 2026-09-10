@@ -13,6 +13,20 @@ function ageLabel(min, max, t) {
   return t("listingDetail.agesUpTo", { max });
 }
 
+// See the matching helper in ListingCard.jsx — isolates a Latin-script name
+// embedded in a Yiddish/RTL sentence so it doesn't visually reorder or split
+// oddly when the surrounding text wraps.
+function withName(template, name) {
+  const [before, after] = template.split("{name}");
+  return (
+    <>
+      {before}
+      <bdi>{name}</bdi>
+      {after}
+    </>
+  );
+}
+
 export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -137,6 +151,14 @@ export default function ListingDetail() {
           {listing.description && <p className="detail-description">{listing.description}</p>}
 
           <dl className="detail-facts">
+            {listing.owner_name && (
+              <div className="detail-fact">
+                <dt>{t("listingDetail.listedByLabel")}</dt>
+                <dd>
+                  <bdi>{listing.owner_name}</bdi>
+                </dd>
+              </div>
+            )}
             {listing.capacity != null && (
               <div className="detail-fact">
                 <dt>{t("listingDetail.capacityLabel")}</dt>
@@ -178,7 +200,11 @@ export default function ListingDetail() {
           <div className="detail-contact card">
             {!isOwnListing && (
               <>
-                <h2 className="contact-owner-heading">{t("listingDetail.contactOwnerHeading")}</h2>
+                <h2 className="contact-owner-heading">
+                  {listing.owner_name
+                    ? withName(t("listingDetail.contactOwnerHeadingNamed"), listing.owner_name)
+                    : t("listingDetail.contactOwnerHeading")}
+                </h2>
                 <p className="contact-owner-subtitle">{t("listingDetail.contactOwnerSubtitle")}</p>
               </>
             )}

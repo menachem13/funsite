@@ -161,8 +161,17 @@ router.get(
       conditions.push(`capacity >= $${params.length}`);
     }
 
+    // LEFT JOIN (not INNER): a listing should never vanish from search
+    // results just because something is off with its owner row. owner_id is
+    // NOT NULL + FK, so `u` is missing in practice only if that invariant is
+    // ever violated — owner_name simply comes back null then, same as any
+    // other optional field, rather than the listing silently disappearing.
     const { rows } = await pool.query(
-      `SELECT * FROM listings WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC`,
+      `SELECT l.*, u.name AS owner_name
+       FROM listings l
+       LEFT JOIN users u ON u.id = l.owner_id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY l.created_at DESC`,
       params
     );
 
@@ -179,7 +188,10 @@ router.get(
     const listingId = await getFeaturedListingId();
     if (!listingId) return res.json({ listing: null });
 
-    const { rows } = await pool.query('SELECT * FROM listings WHERE id = $1', [listingId]);
+    const { rows } = await pool.query(
+      `SELECT l.*, u.name AS owner_name FROM listings l LEFT JOIN users u ON u.id = l.owner_id WHERE l.id = $1`,
+      [listingId]
+    );
     const [listing] = rows.length ? await attachCovers(rows) : [null];
     res.json({ listing });
   })
@@ -191,7 +203,10 @@ router.get(
   '/:id',
   asyncHandler(async (req, res) => {
     const listingId = parseInt(req.params.id, 10);
-    const { rows } = await pool.query('SELECT * FROM listings WHERE id = $1', [listingId]);
+    const { rows } = await pool.query(
+      `SELECT l.*, u.name AS owner_name FROM listings l LEFT JOIN users u ON u.id = l.owner_id WHERE l.id = $1`,
+      [listingId]
+    );
     const listing = rows[0];
     if (!listing) throw new ApiError(404, 'Listing not found');
 

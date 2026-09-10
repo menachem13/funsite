@@ -9,6 +9,21 @@ function ageLabel(min, max, t) {
   return t("listingDetail.agesUpTo", { max });
 }
 
+// Wraps just the name in <bdi> (bidirectional isolate) so a Latin-script
+// name embedded in a Yiddish/RTL sentence keeps its own left-to-right word
+// order — without this, a multi-word name can visually reorder or split
+// oddly when the surrounding RTL text wraps onto a new line.
+function withName(template, name) {
+  const [before, after] = template.split("{name}");
+  return (
+    <>
+      {before}
+      <bdi>{name}</bdi>
+      {after}
+    </>
+  );
+}
+
 export default function ListingCard({ listing, featured = false, cover }) {
   const { t } = useLanguage();
   const age = ageLabel(listing.audience_age_min, listing.audience_age_max, t);
@@ -40,6 +55,12 @@ export default function ListingCard({ listing, featured = false, cover }) {
           {t(`browse.categories.${listing.category}`)}
           {listing.location ? ` · ${listing.location}` : ""}
           {age ? ` · ${age}` : ""}
+          {listing.owner_name && (
+            <>
+              {" · "}
+              {withName(t("listingCard.by"), listing.owner_name)}
+            </>
+          )}
         </p>
         {eventTypes.length > 0 && (
           <p className="listing-card-suitable">
