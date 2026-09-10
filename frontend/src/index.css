@@ -655,6 +655,12 @@ tr:last-child td {
   margin: 6px 0 12px;
 }
 
+.listing-card-suitable {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+}
+
 .tag-row {
   display: flex;
   gap: 6px;

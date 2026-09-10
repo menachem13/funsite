@@ -1,10 +1,12 @@
 import { useLanguage } from "../context/LanguageContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./Legal.css";
 
 const SECTION_COUNT = 6;
 
 export default function Terms() {
   const { t } = useLanguage();
+  useDocumentTitle(t("terms.title"));
   return (
     <div className="legal-page container">
       <h1>{t("terms.title")}</h1>

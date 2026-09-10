@@ -12,6 +12,7 @@ function ageLabel(min, max, t) {
 export default function ListingCard({ listing, featured = false, cover }) {
   const { t } = useLanguage();
   const age = ageLabel(listing.audience_age_min, listing.audience_age_max, t);
+  const eventTypes = listing.event_types || [];
 
   return (
     <Link to={`/listings/${listing.id}`} className="listing-card card card-hover">
@@ -21,7 +22,7 @@ export default function ListingCard({ listing, featured = false, cover }) {
           cover.type === "video" ? (
             <video src={assetUrl(cover.url)} muted playsInline />
           ) : (
-            <img src={assetUrl(cover.url)} alt="" loading="lazy" />
+            <img src={assetUrl(cover.url)} alt={listing.title} loading="lazy" />
           )
         ) : (
           <div className="media-placeholder" />
@@ -36,10 +37,15 @@ export default function ListingCard({ listing, featured = false, cover }) {
           </span>
         </div>
         <p className="listing-card-meta">
-          {listing.category}
+          {t(`browse.categories.${listing.category}`)}
           {listing.location ? ` · ${listing.location}` : ""}
           {age ? ` · ${age}` : ""}
         </p>
+        {eventTypes.length > 0 && (
+          <p className="listing-card-suitable">
+            {t("listingCard.bestFor")} {eventTypes.map((v) => t(`eventTypes.${v}`)).join(" • ")}
+          </p>
+        )}
         <div className="tag-row">
           {listing.audience_gender && listing.audience_gender !== "all" && (
             <span className="tag">{listing.audience_gender === "male" ? t("listingCard.boys") : t("listingCard.girls")}</span>

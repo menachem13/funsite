@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api, ApiError, assetUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./ListingDetail.css";
 
 function ageLabel(min, max, t) {
@@ -27,6 +28,8 @@ export default function ListingDetail() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState("");
+
+  useDocumentTitle(listing?.title || t("browse.title"));
 
   useEffect(() => {
     setLoading(true);
@@ -129,10 +132,36 @@ export default function ListingDetail() {
             </span>
           </div>
 
-          <p className="detail-meta">
-            {listing.category}
-            {listing.location ? ` · ${listing.location}` : ""}
-          </p>
+          <p className="detail-meta">{t(`browse.categories.${listing.category}`)}</p>
+
+          {listing.description && <p className="detail-description">{listing.description}</p>}
+
+          <dl className="detail-facts">
+            {listing.capacity != null && (
+              <div className="detail-fact">
+                <dt>{t("listingDetail.capacityLabel")}</dt>
+                <dd>{t("listingDetail.capacity", { count: listing.capacity })}</dd>
+              </div>
+            )}
+            {(listing.event_types || []).length > 0 && (
+              <div className="detail-fact">
+                <dt>{t("listingDetail.suitableForLabel")}</dt>
+                <dd className="detail-fact-chips">
+                  {listing.event_types.map((value) => (
+                    <span className="tag" key={value}>
+                      {t(`eventTypes.${value}`)}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            )}
+            {listing.location && (
+              <div className="detail-fact">
+                <dt>{t("listingDetail.locationLabel")}</dt>
+                <dd>{listing.location}</dd>
+              </div>
+            )}
+          </dl>
 
           <div className="tag-row">
             {age && <span className="tag">{age}</span>}
@@ -144,18 +173,15 @@ export default function ListingDetail() {
                   : t("listingDetail.girls")}
             </span>
             {listing.attendant_required && <span className="tag">{t("listingDetail.attendantIncluded")}</span>}
-            {listing.capacity != null && <span className="tag">{t("listingDetail.capacity", { count: listing.capacity })}</span>}
-            {(listing.event_types || []).map((value) => (
-              <span className="tag" key={value}>
-                {t(`eventTypes.${value}`)}
-              </span>
-            ))}
           </div>
 
-          {listing.description && <p className="detail-description">{listing.description}</p>}
-
           <div className="detail-contact card">
-            {!isOwnListing && <h2 className="contact-owner-heading">{t("listingDetail.contactOwnerHeading")}</h2>}
+            {!isOwnListing && (
+              <>
+                <h2 className="contact-owner-heading">{t("listingDetail.contactOwnerHeading")}</h2>
+                <p className="contact-owner-subtitle">{t("listingDetail.contactOwnerSubtitle")}</p>
+              </>
+            )}
             {isOwnListing ? (
               <>
                 <p>{t("listingDetail.yourListing")}</p>

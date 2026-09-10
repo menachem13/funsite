@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import ListingCard from "../components/ListingCard";
 import { api } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./Browse.css";
 
 const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
@@ -22,6 +23,7 @@ const DEFAULT_FILTERS = {
 
 export default function Browse() {
   const { t } = useLanguage();
+  useDocumentTitle(t("browse.title"));
   // Seeded from the URL on first render so links like /browse?category=carousel
   // (the homepage category cards) or /browse?q=... (the hero search) actually
   // land with that filter applied, not just a URL that looks right.
@@ -31,8 +33,13 @@ export default function Browse() {
     category: searchParams.get("category") || "",
     q: searchParams.get("q") || "",
     eventType: searchParams.get("eventType") || "",
+    location: searchParams.get("location") || "",
+    groupSize: searchParams.get("groupSize") || "",
   }));
-  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
+  // Open "more filters" by default if a link (e.g. the homepage find-an-attraction
+  // panel) arrived with one of those filters already set, so the visitor can see
+  // why the results are narrowed instead of it looking like a hidden filter.
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(() => !!searchParams.get("groupSize"));
   const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
   const [listings, setListings] = useState([]);
   const [featured, setFeatured] = useState(null);
@@ -224,8 +231,14 @@ export default function Browse() {
           <span className="spinner spinner-dark" />
         </div>
       ) : listings.length === 0 ? (
-        <div className="empty-state">
+        <div className="empty-state card">
+          <p>
+            <strong>{t("browse.noResultsTitle")}</strong>
+          </p>
           <p>{t("browse.noResults")}</p>
+          <button className="btn btn-primary" type="button" onClick={resetFilters}>
+            {t("browse.browseAll")}
+          </button>
         </div>
       ) : (
         <div className="listing-grid">

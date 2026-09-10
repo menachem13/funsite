@@ -7,16 +7,24 @@ import Reveal from "../components/Reveal";
 import ConfettiBurst from "../components/ConfettiBurst";
 import Fireworks from "../components/Fireworks";
 import ListingCard from "../components/ListingCard";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./Home.css";
 
 const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6", "faq7", "faq8", "faq9"];
 const TESTIMONIAL_KEYS = ["testimonial1", "testimonial2", "testimonial3"];
-const BENEFIT_KEYS = ["benefit1", "benefit2", "benefit3", "benefit4", "benefit5", "benefit6"];
+const BENEFIT_KEYS = ["benefit1", "benefit2", "benefit3", "benefit4"];
 const PLANNING_OPTIONS = [
   { icon: "⛺", value: "camp", labelKey: "camp" },
   { icon: "🏫", value: "school", labelKey: "school" },
   { icon: "🎉", value: "community", labelKey: "event" },
   { icon: "✨", value: "other", labelKey: "other" },
+];
+const GROUP_SIZE_BUCKETS = [
+  { key: "upTo50", groupSize: "" },
+  { key: "size50to100", groupSize: "50" },
+  { key: "size100to250", groupSize: "100" },
+  { key: "size250to500", groupSize: "250" },
+  { key: "size500plus", groupSize: "500" },
 ];
 
 // (icon, backend category value) pairs — the value is what /browse?category=
@@ -33,17 +41,10 @@ const CATEGORY_CARDS = [
 export default function Home() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  useDocumentTitle(t("home.heroTitle"));
   const ownerCta = user?.role === "owner" ? "/dashboard" : "/register";
   const heroRef = useRef(null);
   const showStickyCta = useScrolledPast(heroRef);
-  const [heroSearch, setHeroSearch] = useState("");
-
-  function handleHeroSearch(e) {
-    e.preventDefault();
-    const params = heroSearch.trim() ? `?q=${encodeURIComponent(heroSearch.trim())}` : "";
-    navigate(`/browse${params}`);
-  }
 
   return (
     <div className="home-page">
@@ -62,18 +63,7 @@ export default function Home() {
             <h1>{t("home.heroTitle")}</h1>
             <p className="lede">{t("home.heroLede")}</p>
 
-            <form className="hero-search" onSubmit={handleHeroSearch} role="search">
-              <input
-                type="search"
-                value={heroSearch}
-                onChange={(e) => setHeroSearch(e.target.value)}
-                placeholder={t("home.heroSearchPlaceholder")}
-                aria-label={t("home.heroSearchPlaceholder")}
-              />
-              <button className="btn btn-primary" type="submit">
-                {t("home.heroSearchButton")}
-              </button>
-            </form>
+            <FindAttractionPanel />
 
             <div className="hero-actions">
               <Link to={ownerCta} className="btn btn-secondary">
@@ -104,46 +94,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section paths-section">
-        <div className="container paths-grid">
-          <Reveal as={Link} to="/browse" className="path-card path-card-customer">
-            <span className="path-eyebrow">{t("home.pathCustomerEyebrow")}</span>
-            <p>{t("home.pathCustomerBody")}</p>
-            <span className="btn btn-primary">{t("home.pathCustomerCta")}</span>
-          </Reveal>
-          <Reveal as={Link} to={ownerCta} delay={80} className="path-card path-card-provider">
-            <span className="path-eyebrow">{t("home.pathProviderEyebrow")}</span>
-            <p>{t("home.pathProviderBody")}</p>
-            <span className="btn btn-secondary">{t("home.pathProviderCta")}</span>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="section section-alt" id="planning">
-        <div className="container">
-          <Reveal as="h2" className="section-title">
-            {t("home.planningTitle")}
-          </Reveal>
-          <p className="section-subtitle">{t("home.planningSubtitle")}</p>
-          <div className="planning-grid">
-            {PLANNING_OPTIONS.map((opt, i) => (
-              <Reveal
-                as={Link}
-                to={`/browse?eventType=${opt.value}`}
-                className="planning-card"
-                delay={i * 60}
-                key={opt.value}
-              >
-                <span className="planning-icon" aria-hidden="true">
-                  {opt.icon}
-                </span>
-                <span>{t(`home.planning.${opt.labelKey}`)}</span>
-              </Reveal>
-            ))}
           </div>
         </div>
       </section>
@@ -212,9 +162,6 @@ export default function Home() {
                 <li>
                   <strong>{t("home.renterStep3Strong")}</strong> {t("home.renterStep3")}
                 </li>
-                <li>
-                  <strong>{t("home.renterStep4Strong")}</strong> {t("home.renterStep4")}
-                </li>
               </ol>
             </Reveal>
             <Reveal className="how-card" delay={120}>
@@ -253,6 +200,9 @@ export default function Home() {
               </li>
               <li>
                 <strong>{t("home.providerBenefit4Title")}</strong> {t("home.providerBenefit4Body")}
+              </li>
+              <li>
+                <strong>{t("home.providerBenefit5Title")}</strong> {t("home.providerBenefit5Body")}
               </li>
             </ul>
           </div>
@@ -322,6 +272,93 @@ export default function Home() {
         </div>
       )}
     </div>
+  );
+}
+
+function FindAttractionPanel() {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const [eventType, setEventType] = useState("");
+  const [groupSizeBucket, setGroupSizeBucket] = useState("");
+  const [category, setCategory] = useState("");
+  const [location, setLocation] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (eventType) params.set("eventType", eventType);
+    const bucket = GROUP_SIZE_BUCKETS.find((b) => b.key === groupSizeBucket);
+    if (bucket?.groupSize) params.set("groupSize", bucket.groupSize);
+    if (category) params.set("category", category);
+    if (location.trim()) params.set("location", location.trim());
+    const qs = params.toString();
+    navigate(`/browse${qs ? `?${qs}` : ""}`);
+  }
+
+  return (
+    <form className="find-panel" onSubmit={handleSubmit}>
+      <div className="find-panel-row">
+        <span className="find-panel-label">{t("home.findPanel.eventTypeLabel")}</span>
+        <div className="pill-group" role="group" aria-label={t("home.findPanel.eventTypeLabel")}>
+          {PLANNING_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`pill ${eventType === opt.value ? "pill-active" : ""}`}
+              aria-pressed={eventType === opt.value}
+              onClick={() => setEventType((v) => (v === opt.value ? "" : opt.value))}
+            >
+              <span aria-hidden="true">{opt.icon}</span> {t(`home.planning.${opt.labelKey}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="find-panel-row">
+        <span className="find-panel-label">{t("home.findPanel.groupSizeLabel")}</span>
+        <div className="pill-group" role="group" aria-label={t("home.findPanel.groupSizeLabel")}>
+          {GROUP_SIZE_BUCKETS.map((b) => (
+            <button
+              key={b.key}
+              type="button"
+              className={`pill ${groupSizeBucket === b.key ? "pill-active" : ""}`}
+              aria-pressed={groupSizeBucket === b.key}
+              onClick={() => setGroupSizeBucket((v) => (v === b.key ? "" : b.key))}
+            >
+              {t(`home.groupSizeBuckets.${b.key}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="find-panel-row find-panel-selects">
+        <div className="find-panel-select">
+          <label htmlFor="find-category">{t("home.findPanel.categoryLabel")}</label>
+          <select id="find-category" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">{t("browse.allCategories")}</option>
+            {CATEGORY_CARDS.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {t(`browse.categories.${cat.value}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="find-panel-select">
+          <label htmlFor="find-location">{t("home.findPanel.locationLabel")}</label>
+          <input
+            id="find-location"
+            type="text"
+            placeholder={t("browse.locationPlaceholder")}
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <button className="btn btn-primary btn-block find-panel-submit" type="submit">
+        {t("home.findPanel.submit")}
+      </button>
+    </form>
   );
 }
 
