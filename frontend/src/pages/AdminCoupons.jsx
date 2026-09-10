@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
+import { useLanguage } from "../context/LanguageContext";
 import "./AdminCoupons.css";
 
 const EMPTY_FORM = { code: "", type: "percent", percentOff: "", amountOff: "", viewThreshold: "", usageLimit: "" };
 
-function describeCoupon(c) {
-  if (c.type === "percent") return `${c.percent_off}% off`;
-  if (c.type === "fixed") return `$${(c.amount_off_cents / 100).toFixed(2)} off`;
-  return `Free until ${c.view_threshold} views`;
+function describeCoupon(c, t) {
+  if (c.type === "percent") return `${c.percent_off}${t("adminCoupons.percentOffSuffix")}`;
+  if (c.type === "fixed") return `$${(c.amount_off_cents / 100).toFixed(2)} ${t("adminCoupons.offSuffix")}`;
+  return `${t("adminCoupons.freeUntilPrefix")} ${c.view_threshold} ${t("adminCoupons.freeUntilSuffix")}`;
 }
 
 export default function AdminCoupons() {
+  const { t } = useLanguage();
   const [coupons, setCoupons] = useState(null);
   const [error, setError] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
@@ -21,7 +23,7 @@ export default function AdminCoupons() {
     api
       .get("/admin/coupons")
       .then((d) => setCoupons(d.coupons))
-      .catch(() => setError("Couldn't load coupons."));
+      .catch(() => setError(t("adminCoupons.loadError")));
   }
 
   useEffect(load, []);
@@ -49,7 +51,7 @@ export default function AdminCoupons() {
       setForm(EMPTY_FORM);
       load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't create that coupon.");
+      setError(err instanceof ApiError ? err.message : t("adminCoupons.createError"));
     } finally {
       setCreating(false);
     }
@@ -61,20 +63,20 @@ export default function AdminCoupons() {
       await api.patch(`/admin/coupons/${coupon.id}`, { active: !coupon.active });
       load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't update that coupon.");
+      setError(err instanceof ApiError ? err.message : t("adminCoupons.updateError"));
     } finally {
       setBusyId(null);
     }
   }
 
   async function handleDelete(coupon) {
-    if (!window.confirm(`Delete coupon "${coupon.code}"?`)) return;
+    if (!window.confirm(t("adminCoupons.confirmDelete", { code: coupon.code }))) return;
     setBusyId(coupon.id);
     try {
       await api.del(`/admin/coupons/${coupon.id}`);
       load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't delete that coupon.");
+      setError(err instanceof ApiError ? err.message : t("adminCoupons.deleteError"));
     } finally {
       setBusyId(null);
     }
@@ -82,15 +84,15 @@ export default function AdminCoupons() {
 
   return (
     <div className="admin-page container">
-      <h1>Coupons</h1>
-      <p>Create discount or free-trial codes owners can redeem at checkout.</p>
+      <h1>{t("adminCoupons.title")}</h1>
+      <p>{t("adminCoupons.subtitle")}</p>
 
       {error && <div className="alert alert-error">{error}</div>}
 
       <form className="card coupon-form" onSubmit={handleCreate}>
         <div className="form-row">
           <div className="field">
-            <label htmlFor="code">Code</label>
+            <label htmlFor="code">{t("adminCoupons.code")}</label>
             <input
               id="code"
               type="text"
@@ -101,11 +103,11 @@ export default function AdminCoupons() {
             />
           </div>
           <div className="field">
-            <label htmlFor="type">Type</label>
+            <label htmlFor="type">{t("adminCoupons.type")}</label>
             <select id="type" value={form.type} onChange={(e) => updateField("type", e.target.value)}>
-              <option value="percent">Percentage off</option>
-              <option value="fixed">Fixed dollar amount off</option>
-              <option value="views_gate">Free until N views</option>
+              <option value="percent">{t("adminCoupons.typePercent")}</option>
+              <option value="fixed">{t("adminCoupons.typeFixed")}</option>
+              <option value="views_gate">{t("adminCoupons.typeViewsGate")}</option>
             </select>
           </div>
         </div>
@@ -113,7 +115,7 @@ export default function AdminCoupons() {
         <div className="form-row">
           {form.type === "percent" && (
             <div className="field">
-              <label htmlFor="percentOff">Percent off</label>
+              <label htmlFor="percentOff">{t("adminCoupons.percentOff")}</label>
               <input
                 id="percentOff"
                 type="number"
@@ -127,7 +129,7 @@ export default function AdminCoupons() {
           )}
           {form.type === "fixed" && (
             <div className="field">
-              <label htmlFor="amountOff">Dollars off</label>
+              <label htmlFor="amountOff">{t("adminCoupons.dollarsOff")}</label>
               <input
                 id="amountOff"
                 type="number"
@@ -141,7 +143,7 @@ export default function AdminCoupons() {
           )}
           {form.type === "views_gate" && (
             <div className="field">
-              <label htmlFor="viewThreshold">View threshold</label>
+              <label htmlFor="viewThreshold">{t("adminCoupons.viewThreshold")}</label>
               <input
                 id="viewThreshold"
                 type="number"
@@ -153,21 +155,21 @@ export default function AdminCoupons() {
             </div>
           )}
           <div className="field">
-            <label htmlFor="usageLimit">Usage limit</label>
+            <label htmlFor="usageLimit">{t("adminCoupons.usageLimit")}</label>
             <input
               id="usageLimit"
               type="number"
               min="1"
-              placeholder="Unlimited"
+              placeholder={t("adminCoupons.usageLimitPlaceholder")}
               value={form.usageLimit}
               onChange={(e) => updateField("usageLimit", e.target.value)}
             />
-            <p className="field-hint">Leave blank for unlimited uses.</p>
+            <p className="field-hint">{t("adminCoupons.usageLimitHint")}</p>
           </div>
         </div>
 
         <button className="btn btn-primary" type="submit" disabled={creating}>
-          {creating ? <span className="spinner" /> : "Create coupon"}
+          {creating ? <span className="spinner" /> : t("adminCoupons.createCoupon")}
         </button>
       </form>
 
@@ -177,17 +179,17 @@ export default function AdminCoupons() {
         </div>
       ) : coupons.length === 0 ? (
         <div className="empty-state">
-          <p>No coupons yet.</p>
+          <p>{t("adminCoupons.noCouponsYet")}</p>
         </div>
       ) : (
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Discount</th>
-                <th>Usage</th>
-                <th>Status</th>
+                <th>{t("adminCoupons.colCode")}</th>
+                <th>{t("adminCoupons.colDiscount")}</th>
+                <th>{t("adminCoupons.colUsage")}</th>
+                <th>{t("adminCoupons.colStatus")}</th>
                 <th aria-label="Actions" />
               </tr>
             </thead>
@@ -197,13 +199,13 @@ export default function AdminCoupons() {
                   <td>
                     <code>{c.code}</code>
                   </td>
-                  <td>{describeCoupon(c)}</td>
+                  <td>{describeCoupon(c, t)}</td>
                   <td>
                     {c.times_used} / {c.usage_limit ?? "∞"}
                   </td>
                   <td>
                     <span className={`badge ${c.active ? "badge-status-active" : "badge-status-inactive"}`}>
-                      {c.active ? "active" : "inactive"}
+                      {c.active ? t("adminCoupons.active") : t("adminCoupons.inactive")}
                     </span>
                   </td>
                   <td className="row-actions">
@@ -212,10 +214,10 @@ export default function AdminCoupons() {
                       onClick={() => toggleActive(c)}
                       disabled={busyId === c.id}
                     >
-                      {c.active ? "Deactivate" : "Activate"}
+                      {c.active ? t("adminCoupons.deactivate") : t("adminCoupons.activate")}
                     </button>
                     <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c)} disabled={busyId === c.id}>
-                      Delete
+                      {t("adminCoupons.delete")}
                     </button>
                   </td>
                 </tr>

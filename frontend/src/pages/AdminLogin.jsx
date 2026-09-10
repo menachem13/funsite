@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import LogoMark from "../components/LogoMark";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import "./Auth.css";
 
 export default function AdminLogin() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [step, setStep] = useState("username");
   const [username, setUsername] = useState("");
@@ -24,7 +26,7 @@ export default function AdminLogin() {
       setMessage(data.message);
       setStep("code");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+      setError(err instanceof ApiError ? err.message : t("auth.genericError"));
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,7 @@ export default function AdminLogin() {
       login(data.user, data.token);
       navigate("/admin/coupons", { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+      setError(err instanceof ApiError ? err.message : t("auth.genericError"));
     } finally {
       setLoading(false);
     }
@@ -52,9 +54,9 @@ export default function AdminLogin() {
           <LogoMark />
           fun<span className="logo-accent">all</span>
         </Link>
-        <h1>Admin login</h1>
+        <h1>{t("auth.adminLoginTitle")}</h1>
         <p className="auth-subtitle">
-          {step === "username" ? "Enter the admin username to request a login code." : "Enter the code that was emailed."}
+          {step === "username" ? t("auth.adminLoginSubtitleUsername") : t("auth.adminLoginSubtitleCode")}
         </p>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -63,7 +65,7 @@ export default function AdminLogin() {
         {step === "username" ? (
           <form onSubmit={handleRequestOtp}>
             <div className="field">
-              <label htmlFor="username">Admin username</label>
+              <label htmlFor="username">{t("auth.adminUsername")}</label>
               <input
                 id="username"
                 type="text"
@@ -74,13 +76,13 @@ export default function AdminLogin() {
               />
             </div>
             <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-              {loading ? <span className="spinner" /> : "Send login code"}
+              {loading ? <span className="spinner" /> : t("auth.sendLoginCode")}
             </button>
           </form>
         ) : (
           <form onSubmit={handleVerify}>
             <div className="field">
-              <label htmlFor="code">6-digit code</label>
+              <label htmlFor="code">{t("auth.codeLabel")}</label>
               <input
                 id="code"
                 type="text"
@@ -94,7 +96,7 @@ export default function AdminLogin() {
               />
             </div>
             <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-              {loading ? <span className="spinner" /> : "Verify & log in"}
+              {loading ? <span className="spinner" /> : t("auth.verifyAndLogIn")}
             </button>
             <button
               type="button"
@@ -105,7 +107,7 @@ export default function AdminLogin() {
                 setMessage("");
               }}
             >
-              Use a different username
+              {t("auth.useDifferentUsername")}
             </button>
           </form>
         )}

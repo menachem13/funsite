@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import LogoMark from "./LogoMark";
+import LanguageToggle from "./LanguageToggle";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import "./Navbar.css";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -35,47 +38,48 @@ export default function Navbar() {
 
         <nav className={`site-nav ${menuOpen ? "open" : ""}`} aria-label="Primary">
           <NavLink to="/browse" onClick={() => setMenuOpen(false)}>
-            Browse
+            {t("nav.browse")}
           </NavLink>
 
           {user?.role === "owner" && (
             <>
               <NavLink to="/dashboard" onClick={() => setMenuOpen(false)}>
-                Dashboard
+                {t("nav.dashboard")}
               </NavLink>
               <NavLink to="/inbox" onClick={() => setMenuOpen(false)}>
-                Inbox
+                {t("nav.inbox")}
               </NavLink>
             </>
           )}
 
           {user?.role === "renter" && (
             <NavLink to="/inbox" onClick={() => setMenuOpen(false)}>
-              Messages
+              {t("nav.messages")}
             </NavLink>
           )}
 
           {user?.role === "admin" && (
             <NavLink to="/admin/coupons" onClick={() => setMenuOpen(false)}>
-              Coupons
+              {t("nav.coupons")}
             </NavLink>
           )}
 
           <div className="nav-auth">
+            <LanguageToggle />
             {user ? (
               <>
                 <span className="nav-user">{user.name}</span>
                 <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
-                  Log out
+                  {t("nav.logOut")}
                 </button>
               </>
             ) : (
               <>
                 <Link className="btn btn-ghost btn-sm" to="/login" onClick={() => setMenuOpen(false)}>
-                  Log in
+                  {t("nav.logIn")}
                 </Link>
                 <Link className="btn btn-primary btn-sm" to="/register" onClick={() => setMenuOpen(false)}>
-                  Sign up
+                  {t("nav.signUp")}
                 </Link>
               </>
             )}

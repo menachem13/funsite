@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import "./Inbox.css";
 
 export default function Inbox() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { threadId } = useParams();
   const navigate = useNavigate();
 
@@ -16,7 +18,7 @@ export default function Inbox() {
     api
       .get("/threads")
       .then((d) => setThreads(d.threads))
-      .catch(() => setError("Couldn't load your messages."));
+      .catch(() => setError(t("inbox.loadError")));
   }
 
   useEffect(loadThreads, []);
@@ -39,27 +41,18 @@ export default function Inbox() {
 
   return (
     <div className="inbox-page container">
-      <h1>Messages</h1>
+      <h1>{t("inbox.title")}</h1>
       <div className="inbox-layout">
         <aside className={`thread-list ${threadId ? "hide-on-mobile" : ""}`}>
           {threads.length === 0 ? (
             <div className="empty-state">
-              <p>No conversations yet.</p>
+              <p>{t("inbox.noConversations")}</p>
             </div>
           ) : (
             <ul>
               {threads.map((t) => (
                 <li key={t.id}>
-                  <button
-                    className={`thread-item ${String(t.id) === threadId ? "active" : ""}`}
-                    onClick={() => navigate(`/inbox/${t.id}`)}
-                  >
-                    <div className="thread-item-top">
-                      <span className="thread-title">{t.listing_title}</span>
-                      {t.unread_count > 0 && <span className="unread-pill">{t.unread_count}</span>}
-                    </div>
-                    <p className="thread-preview">{t.last_message_body || "No messages yet"}</p>
-                  </button>
+                  <ThreadListItem thread={t} active={String(t.id) === threadId} onClick={() => navigate(`/inbox/${t.id}`)} />
                 </li>
               ))}
             </ul>
@@ -76,7 +69,7 @@ export default function Inbox() {
             />
           ) : (
             <div className="empty-state">
-              <p>Select a conversation to view it.</p>
+              <p>{t("inbox.selectConversation")}</p>
             </div>
           )}
         </section>
@@ -85,7 +78,21 @@ export default function Inbox() {
   );
 }
 
+function ThreadListItem({ thread, active, onClick }) {
+  const { t } = useLanguage();
+  return (
+    <button className={`thread-item ${active ? "active" : ""}`} onClick={onClick}>
+      <div className="thread-item-top">
+        <span className="thread-title">{thread.listing_title}</span>
+        {thread.unread_count > 0 && <span className="unread-pill">{thread.unread_count}</span>}
+      </div>
+      <p className="thread-preview">{thread.last_message_body || t("inbox.noMessagesYet")}</p>
+    </button>
+  );
+}
+
 function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
+  const { t } = useLanguage();
   const [thread, setThread] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +111,7 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
         // refresh the sidebar so its unread badge clears to match.
         onUpdate();
       })
-      .catch(() => setError("Couldn't load this conversation."))
+      .catch(() => setError(t("inbox.loadThreadError")))
       .finally(() => setLoading(false));
   }, [threadId]);
 
@@ -119,7 +126,7 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
       setBody("");
       onUpdate();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't send that message.");
+      setError(err instanceof ApiError ? err.message : t("inbox.sendError"));
     } finally {
       setSending(false);
     }
@@ -139,10 +146,10 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
     <div className="thread-panel">
       <div className="thread-panel-header">
         <Link to="/inbox" className="back-link show-on-mobile">
-          ← All messages
+          ← {t("inbox.allMessages")}
         </Link>
         <Link to={`/listings/${thread.listing_id}`}>
-          <strong>{listingTitle || `Listing #${thread.listing_id}`}</strong>
+          <strong>{listingTitle || `${t("inbox.listingPrefix")}${thread.listing_id}`}</strong>
         </Link>
       </div>
 
@@ -160,13 +167,13 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
       <form className="reply-form" onSubmit={handleReply}>
         <input
           type="text"
-          placeholder="Type a reply…"
+          placeholder={t("inbox.replyPlaceholder")}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           aria-label="Reply"
         />
         <button className="btn btn-primary btn-sm" type="submit" disabled={sending}>
-          {sending ? <span className="spinner" /> : "Send"}
+          {sending ? <span className="spinner" /> : t("inbox.send")}
         </button>
       </form>
     </div>

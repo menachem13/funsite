@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, ApiError, assetUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import "./ListingDetail.css";
 
-function ageLabel(min, max) {
+function ageLabel(min, max, t) {
   if (min == null && max == null) return null;
-  if (min != null && max != null) return `Ages ${min}–${max}`;
-  if (min != null) return `Ages ${min}+`;
-  return `Up to age ${max}`;
+  if (min != null && max != null) return t("listingDetail.agesRange", { min, max });
+  if (min != null) return t("listingDetail.agesPlus", { min });
+  return t("listingDetail.agesUpTo", { max });
 }
 
 export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [listing, setListing] = useState(null);
   const [media, setMedia] = useState([]);
@@ -35,9 +37,9 @@ export default function ListingDetail() {
         setMedia(d.media || []);
         setActiveMedia(0);
       })
-      .catch(() => setError("This listing couldn't be found."))
+      .catch(() => setError(t("listingDetail.notFound")))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, t]);
 
   async function handleSendMessage(e) {
     e.preventDefault();
@@ -49,7 +51,7 @@ export default function ListingDetail() {
       setSent(true);
       setMessageBody("");
     } catch (err) {
-      setSendError(err instanceof ApiError ? err.message : "Couldn't send that message. Try again.");
+      setSendError(err instanceof ApiError ? err.message : t("listingDetail.sendError"));
     } finally {
       setSending(false);
     }
@@ -66,22 +68,22 @@ export default function ListingDetail() {
   if (error || !listing) {
     return (
       <div className="container empty-state">
-        <p>{error || "This listing couldn't be found."}</p>
+        <p>{error || t("listingDetail.notFound")}</p>
         <Link className="btn btn-secondary" to="/browse">
-          Back to browse
+          {t("listingDetail.backToBrowse")}
         </Link>
       </div>
     );
   }
 
-  const age = ageLabel(listing.audience_age_min, listing.audience_age_max);
+  const age = ageLabel(listing.audience_age_min, listing.audience_age_max, t);
   const isOwnListing = user?.role === "owner" && user.id === listing.owner_id;
   const current = media[activeMedia];
 
   return (
     <div className="listing-detail container">
       <Link className="back-link" to="/browse">
-        ← Back to browse
+        ← {t("listingDetail.backToBrowse")}
       </Link>
 
       <div className="detail-grid">
@@ -123,7 +125,7 @@ export default function ListingDetail() {
             <h1>{listing.title}</h1>
             <span className="live-view">
               <span className="live-dot" aria-hidden="true" />
-              <span className="count">{listing.view_count}</span> viewing
+              <span className="count">{listing.view_count}</span> {t("listingDetail.viewing")}
             </span>
           </div>
 
@@ -136,12 +138,12 @@ export default function ListingDetail() {
             {age && <span className="tag">{age}</span>}
             <span className="tag">
               {listing.audience_gender === "all"
-                ? "All genders"
+                ? t("listingDetail.allGenders")
                 : listing.audience_gender === "male"
-                  ? "Boys"
-                  : "Girls"}
+                  ? t("listingDetail.boys")
+                  : t("listingDetail.girls")}
             </span>
-            {listing.attendant_required && <span className="tag">Attendant included</span>}
+            {listing.attendant_required && <span className="tag">{t("listingDetail.attendantIncluded")}</span>}
           </div>
 
           {listing.description && <p className="detail-description">{listing.description}</p>}
@@ -149,31 +151,32 @@ export default function ListingDetail() {
           <div className="detail-contact card">
             {isOwnListing ? (
               <>
-                <p>This is your listing.</p>
+                <p>{t("listingDetail.yourListing")}</p>
                 <Link className="btn btn-secondary btn-block" to={`/dashboard/${listing.id}/edit`}>
-                  Manage this listing
+                  {t("listingDetail.manageListing")}
                 </Link>
               </>
             ) : !user ? (
               <>
-                <p>Log in as a renter to message the owner.</p>
+                <p>{t("listingDetail.loginToMessage")}</p>
                 <Link className="btn btn-primary btn-block" to="/login" state={{ from: { pathname: `/listings/${id}` } }}>
-                  Log in to message
+                  {t("listingDetail.loginToMessageBtn")}
                 </Link>
               </>
             ) : user.role !== "renter" ? (
-              <p>Only renter accounts can message owners.</p>
+              <p>{t("listingDetail.onlyRentersCanMessage")}</p>
             ) : sent ? (
               <div className="alert alert-success">
-                Message sent! Check your <Link to="/inbox">inbox</Link> for the owner's reply.
+                {t("listingDetail.messageSentPrefix")} <Link to="/inbox">{t("listingDetail.messageSentInbox")}</Link>{" "}
+                {t("listingDetail.messageSentSuffix")}
               </div>
             ) : (
               <form onSubmit={handleSendMessage}>
                 <div className="field">
-                  <label htmlFor="message">Message the owner</label>
+                  <label htmlFor="message">{t("listingDetail.messageLabel")}</label>
                   <textarea
                     id="message"
-                    placeholder="Hi! Is this available for..."
+                    placeholder={t("listingDetail.messagePlaceholder")}
                     required
                     value={messageBody}
                     onChange={(e) => setMessageBody(e.target.value)}
@@ -181,7 +184,7 @@ export default function ListingDetail() {
                 </div>
                 {sendError && <div className="alert alert-error">{sendError}</div>}
                 <button className="btn btn-primary btn-block" type="submit" disabled={sending}>
-                  {sending ? <span className="spinner" /> : "Send message"}
+                  {sending ? <span className="spinner" /> : t("listingDetail.sendMessage")}
                 </button>
               </form>
             )}

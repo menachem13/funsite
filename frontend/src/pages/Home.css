@@ -280,7 +280,8 @@
 .step-list li {
   counter-increment: step;
   position: relative;
-  padding: 0 0 24px 40px;
+  padding-block-end: 24px;
+  padding-inline-start: 40px;
   color: var(--ink-soft);
 }
 
@@ -291,7 +292,7 @@
 .step-list li::before {
   content: counter(step);
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: -2px;
   width: 26px;
   height: 26px;

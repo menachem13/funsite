@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
+import { useLanguage } from "../../context/LanguageContext";
 import "./Dashboard.css";
 
-function statusBadge(status) {
-  return <span className={`badge badge-status-${status}`}>{status}</span>;
-}
-
 export default function DashboardHome() {
+  const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
@@ -16,19 +14,19 @@ export default function DashboardHome() {
     api
       .get("/owner/dashboard")
       .then(setData)
-      .catch(() => setError("Couldn't load your dashboard. Try refreshing."));
+      .catch(() => setError(t("dashboard.loadError")));
   }
 
   useEffect(load, []);
 
   async function handleDelete(id, title) {
-    if (!window.confirm(`Delete "${title}"? This can't be undone.`)) return;
+    if (!window.confirm(t("dashboard.confirmDelete", { title }))) return;
     setDeletingId(id);
     try {
       await api.del(`/listings/${id}`);
       load();
     } catch (err) {
-      window.alert(err instanceof ApiError ? err.message : "Couldn't delete that listing.");
+      window.alert(err instanceof ApiError ? err.message : t("dashboard.deleteError"));
     } finally {
       setDeletingId(null);
     }
@@ -56,38 +54,38 @@ export default function DashboardHome() {
     <div className="dashboard-page container">
       <div className="dashboard-header">
         <div>
-          <h1>Your dashboard</h1>
-          <p>Track views, messages, and manage your listings.</p>
+          <h1>{t("dashboard.title")}</h1>
+          <p>{t("dashboard.subtitle")}</p>
         </div>
         <Link className="btn btn-primary" to="/dashboard/new">
-          + New listing
+          {t("dashboard.newListing")}
         </Link>
       </div>
 
       <div className="stat-grid">
         <div className="stat-tile">
-          <div className="label">Total views</div>
+          <div className="label">{t("dashboard.totalViews")}</div>
           <div className="value">{totals.totalViews}</div>
         </div>
         <div className="stat-tile">
-          <div className="label">Active listings</div>
+          <div className="label">{t("dashboard.activeListings")}</div>
           <div className="value">{totals.activeListingCount}</div>
         </div>
         <div className="stat-tile">
-          <div className="label">Unread messages</div>
+          <div className="label">{t("dashboard.unreadMessages")}</div>
           <div className="value">{totals.unreadMessageCount}</div>
         </div>
         <div className="stat-tile">
-          <div className="label">Total listings</div>
+          <div className="label">{t("dashboard.totalListings")}</div>
           <div className="value">{totals.listingCount}</div>
         </div>
       </div>
 
       {listings.length === 0 ? (
         <div className="empty-state card">
-          <p>You haven't created a listing yet.</p>
+          <p>{t("dashboard.noListingsYet")}</p>
           <Link className="btn btn-primary" to="/dashboard/new">
-            Create your first listing
+            {t("dashboard.createFirstListing")}
           </Link>
         </div>
       ) : (
@@ -95,12 +93,12 @@ export default function DashboardHome() {
           <table>
             <thead>
               <tr>
-                <th>Listing</th>
-                <th>Status</th>
-                <th>Views</th>
-                <th>Messages</th>
-                <th>Featured</th>
-                <th>Expires</th>
+                <th>{t("dashboard.colListing")}</th>
+                <th>{t("dashboard.colStatus")}</th>
+                <th>{t("dashboard.colViews")}</th>
+                <th>{t("dashboard.colMessages")}</th>
+                <th>{t("dashboard.colFeatured")}</th>
+                <th>{t("dashboard.colExpires")}</th>
                 <th aria-label="Actions" />
               </tr>
             </thead>
@@ -112,7 +110,9 @@ export default function DashboardHome() {
                       {l.title}
                     </Link>
                   </td>
-                  <td>{statusBadge(l.status)}</td>
+                  <td>
+                    <span className={`badge badge-status-${l.status}`}>{l.status}</span>
+                  </td>
                   <td>{l.view_count}</td>
                   <td>
                     {l.message_count}
@@ -122,14 +122,14 @@ export default function DashboardHome() {
                   <td>{l.subscription_expires_at ? new Date(l.subscription_expires_at).toLocaleDateString() : "—"}</td>
                   <td className="row-actions">
                     <Link className="btn btn-secondary btn-sm" to={`/dashboard/${l.id}/edit`}>
-                      Manage
+                      {t("dashboard.manage")}
                     </Link>
                     <button
                       className="btn btn-danger btn-sm"
                       onClick={() => handleDelete(l.id, l.title)}
                       disabled={deletingId === l.id}
                     >
-                      Delete
+                      {t("dashboard.delete")}
                     </button>
                   </td>
                 </tr>

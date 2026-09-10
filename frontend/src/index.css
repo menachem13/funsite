@@ -461,6 +461,11 @@ textarea {
   font-weight: 700;
   font-size: 1.2rem;
   color: var(--ink);
+  /* The wordmark itself is a brand name, not translated content — it must
+     always read icon-then-"funall" left-to-right, even when the page is in
+     RTL (Yiddish). Without this, RTL flex-item reordering visually flips
+     the icon/text order and reads as "allfun". */
+  direction: ltr;
 }
 
 .logo-mark {
@@ -613,7 +618,7 @@ tr:last-child td {
 .listing-card-media .badge {
   position: absolute;
   top: 12px;
-  left: 12px;
+  inset-inline-start: 12px;
   z-index: 2;
 }
 

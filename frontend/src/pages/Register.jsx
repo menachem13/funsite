@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import LogoMark from "../components/LogoMark";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import "./Auth.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Register() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [role, setRole] = useState("renter");
   const [name, setName] = useState("");
@@ -27,7 +29,7 @@ export default function Register() {
     setError("");
 
     if (!passwordValid) {
-      setError("Password must be at least 8 characters.");
+      setError(t("auth.passwordTooShort"));
       return;
     }
 
@@ -37,7 +39,7 @@ export default function Register() {
       login(data.user, data.token);
       navigate(role === "owner" ? "/dashboard" : "/browse", { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof ApiError ? err.message : t("auth.genericError"));
     } finally {
       setLoading(false);
     }
@@ -50,15 +52,15 @@ export default function Register() {
           <LogoMark />
           fun<span className="logo-accent">all</span>
         </Link>
-        <h1>Create your account</h1>
-        <p className="auth-subtitle">Free for renters. Owners list for $100 / 6 months.</p>
+        <h1>{t("auth.registerTitle")}</h1>
+        <p className="auth-subtitle">{t("auth.registerSubtitle")}</p>
 
-        <div className="role-toggle" role="radiogroup" aria-label="I am a">
+        <div className="role-toggle" role="radiogroup" aria-label={t("auth.iAmA")}>
           <button type="button" className={role === "renter" ? "active" : ""} onClick={() => setRole("renter")}>
-            Planning an event
+            {t("auth.planningEvent")}
           </button>
           <button type="button" className={role === "owner" ? "active" : ""} onClick={() => setRole("owner")}>
-            I own attractions
+            {t("auth.ownAttractions")}
           </button>
         </div>
 
@@ -66,11 +68,11 @@ export default function Register() {
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="name">Full name</label>
+            <label htmlFor="name">{t("auth.fullName")}</label>
             <input id="name" type="text" required value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t("auth.email")}</label>
             <input
               id="email"
               type="email"
@@ -83,12 +85,12 @@ export default function Register() {
             />
             {emailTouched && (
               <p className={`field-hint ${emailValid ? "hint-valid" : "hint-invalid"}`}>
-                {emailValid ? "✓ Looks good" : "Enter a valid email address"}
+                {emailValid ? t("auth.emailValid") : t("auth.emailInvalid")}
               </p>
             )}
           </div>
           <div className="field">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t("auth.password")}</label>
             <input
               id="password"
               type="password"
@@ -101,16 +103,17 @@ export default function Register() {
               onBlur={() => setPasswordTouched(true)}
             />
             <p className={`field-hint ${passwordTouched ? (passwordValid ? "hint-valid" : "hint-invalid") : ""}`}>
-              {passwordTouched && passwordValid ? "✓ " : ""}At least 8 characters.
+              {passwordTouched && passwordValid ? "✓ " : ""}
+              {t("auth.passwordHint")}
             </p>
           </div>
           <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-            {loading ? <span className="spinner" /> : `Sign up as ${role === "owner" ? "an owner" : "a renter"}`}
+            {loading ? <span className="spinner" /> : role === "owner" ? t("auth.signUpAsOwner") : t("auth.signUpAsRenter")}
           </button>
         </form>
 
         <p className="auth-footer-link">
-          Already have an account? <Link to="/login">Log in</Link>
+          {t("auth.alreadyHaveAccount")} <Link to="/login">{t("auth.logIn")}</Link>
         </p>
       </div>
     </div>

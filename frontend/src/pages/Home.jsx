@@ -1,63 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import Reveal from "../components/Reveal";
 import ConfettiBurst from "../components/ConfettiBurst";
 import Fireworks from "../components/Fireworks";
 import { useCountUp } from "../hooks/useCountUp";
 import "./Home.css";
 
-const CATEGORIES = ["Inflatables", "Photo booths", "Carousels", "Dunk tanks", "Face painting", "Game trailers"];
-
-const TESTIMONIALS = [
-  {
-    role: "Owner perspective",
-    quote:
-      "This is where a real owner's review will go — for example, how quickly they got their first booking after listing.",
-  },
-  {
-    role: "Renter perspective",
-    quote:
-      "This is where a real renter's review will go — for example, how easy it was to find and message an owner.",
-  },
-  {
-    role: "General experience",
-    quote: "This is where a real review about ease of use, response times, or booking confidence will go.",
-  },
-];
-
-const FAQS = [
-  {
-    q: "Is Funall free to use?",
-    a: "Yes, for renters. Browsing, filtering, and messaging owners is always free. Owners pay a flat $100 every 6 months to list — no commission on what you charge, ever.",
-  },
-  {
-    q: "How does “Featured Today” work?",
-    a: "Featured rotates fairly among paid, active listings based on who's waited longest since their last turn — not who's spent the most or has the most views.",
-  },
-  {
-    q: "Do I need an account to browse?",
-    a: "No — you can browse and view listings without signing up. You'll need a free account to message an owner.",
-  },
-  {
-    q: "Can I cancel or remove my listing?",
-    a: "Yes, owners can remove a listing at any time from their dashboard.",
-  },
-  {
-    q: "What happens when my listing's 6 months are up?",
-    a: "Your listing automatically goes inactive and drops out of the Featured rotation until you renew — there are no surprise auto-charges.",
-  },
-  {
-    q: "How do I know a listing is trustworthy?",
-    a: "Every listing shows real view counts and message activity, and you can message the owner directly to ask questions before booking.",
-  },
-];
+const CATEGORY_KEYS = ["inflatables", "photoBooths", "carousels", "dunkTanks", "facePainting", "gameTrailers"];
+const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6"];
+const TESTIMONIAL_KEYS = ["testimonial1", "testimonial2", "testimonial3"];
 
 export default function Home() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const ownerCta = user?.role === "owner" ? "/dashboard" : "/register";
   const heroRef = useRef(null);
   const showStickyCta = useScrolledPast(heroRef);
+
+  const categories = CATEGORY_KEYS.map((key) => t(`home.categories.${key}`));
 
   return (
     <div className="home-page">
@@ -72,42 +34,38 @@ export default function Home() {
 
         <div className="container hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Now booking in your area</p>
-            <h1>Rent the fun stuff, straight from the people who own it.</h1>
-            <p className="lede">
-              Bounce houses, photo booths, carousels, and more — browse local attractions, message
-              owners directly, and book your event. No commission, no bidding wars, no middleman
-              markup.
-            </p>
+            <p className="eyebrow">{t("home.eyebrow")}</p>
+            <h1>{t("home.heroTitle")}</h1>
+            <p className="lede">{t("home.heroLede")}</p>
             <div className="hero-actions">
               <Link to="/browse" className="btn btn-primary">
-                Browse attractions
+                {t("home.browseAttractions")}
               </Link>
               <Link to={ownerCta} className="btn btn-secondary">
-                {user?.role === "owner" ? "Go to your dashboard" : "List your attraction"}
+                {user?.role === "owner" ? t("home.goToDashboard") : t("home.listAttraction")}
               </Link>
             </div>
-            <p className="hero-note">Free for renters. Owners list for a flat $100 / 6 months — no commission, ever.</p>
+            <p className="hero-note">{t("home.heroNote")}</p>
           </div>
 
           <div className="hero-visual" aria-hidden="true">
             <div className="listing-card demo-card hero-card">
               <div className="listing-card-media">
-                <span className="badge badge-featured">Featured Today</span>
+                <span className="badge badge-featured">{t("home.featuredToday")}</span>
                 <div className="media-placeholder" />
               </div>
               <div className="listing-card-body">
                 <div className="listing-card-top">
-                  <h3>Rainbow Castle Bounce House</h3>
+                  <h3>{t("home.demoCardTitle")}</h3>
                   <span className="live-view">
                     <span className="live-dot" aria-hidden="true" />
-                    <span className="count">27</span> viewing
+                    <span className="count">27</span> {t("home.demoCardViewing")}
                   </span>
                 </div>
-                <p className="listing-card-meta">Inflatable · Brooklyn, NY · Ages 3–12</p>
+                <p className="listing-card-meta">{t("home.demoCardMeta")}</p>
                 <div className="tag-row">
-                  <span className="tag">All genders</span>
-                  <span className="tag">Attendant included</span>
+                  <span className="tag">{t("home.allGenders")}</span>
+                  <span className="tag">{t("home.attendantIncluded")}</span>
                 </div>
               </div>
             </div>
@@ -117,11 +75,11 @@ export default function Home() {
 
       <Reveal as="section" className="logos-strip">
         <div className="container">
-          <p>Built for the attractions renters actually search for</p>
+          <p>{t("home.logosStripLabel")}</p>
         </div>
         <div className="marquee">
           <div className="marquee-track">
-            {[...CATEGORIES, ...CATEGORIES].map((c, i) => (
+            {[...categories, ...categories].map((c, i) => (
               <span className="chip" key={`${c}-${i}`}>
                 {c}
               </span>
@@ -132,51 +90,51 @@ export default function Home() {
 
       <Reveal as="section" className="section trust-section">
         <div className="container">
-          <p className="eyebrow trust-eyebrow">Sample metrics — preview</p>
+          <p className="eyebrow trust-eyebrow">{t("home.trustEyebrow")}</p>
           <div className="trust-grid">
             <div className="trust-tile">
               <p className="trust-number">1,200+*</p>
-              <p className="trust-label">Listing views</p>
+              <p className="trust-label">{t("home.trustListingViews")}</p>
             </div>
             <div className="trust-tile">
               <p className="trust-number">300+*</p>
-              <p className="trust-label">Messages sent</p>
+              <p className="trust-label">{t("home.trustMessagesSent")}</p>
             </div>
             <div className="trust-tile">
               <p className="trust-number">98%*</p>
-              <p className="trust-label">Owner response rate</p>
+              <p className="trust-label">{t("home.trustResponseRate")}</p>
             </div>
           </div>
-          <p className="trust-footnote">*Sample numbers shown for layout preview — swap in real metrics once available.</p>
+          <p className="trust-footnote">{t("home.trustFootnote")}</p>
         </div>
       </Reveal>
 
       <section className="section section-alt">
         <div className="container">
           <Reveal as="h2" className="section-title">
-            Everything you need, nothing you don't
+            {t("home.benefitsTitle")}
           </Reveal>
           <div className="bento-grid">
             <Reveal as="div" className="bento-card bento-large">
-              <h3>Live interest, not guesswork</h3>
-              <p>Every listing shows a real-time view count with a pulsing live indicator — owners see demand as it happens.</p>
+              <h3>{t("home.benefit1Title")}</h3>
+              <p>{t("home.benefit1Body")}</p>
               <LiveStatDemo />
             </Reveal>
             <Reveal className="bento-card" delay={80}>
-              <h3>Audience filters</h3>
-              <p>Age range, gender suitability, and attendant requirements — set once per listing, filterable by every renter.</p>
+              <h3>{t("home.benefit2Title")}</h3>
+              <p>{t("home.benefit2Body")}</p>
             </Reveal>
             <Reveal className="bento-card" delay={160}>
-              <h3>Fair featured rotation</h3>
-              <p>Featured Today goes to whoever's waited longest — never who paid the most. Same flat fee, same shot.</p>
+              <h3>{t("home.benefit3Title")}</h3>
+              <p>{t("home.benefit3Body")}</p>
             </Reveal>
             <Reveal className="bento-card" delay={80}>
-              <h3>Direct messaging</h3>
-              <p>No forms, no phone tag. Renters message owners straight from a listing and get a real inbox.</p>
+              <h3>{t("home.benefit4Title")}</h3>
+              <p>{t("home.benefit4Body")}</p>
             </Reveal>
             <Reveal className="bento-card" delay={160}>
-              <h3>Owner analytics</h3>
-              <p>A 14-day view breakdown, message counts, and featured history for every listing you run.</p>
+              <h3>{t("home.benefit5Title")}</h3>
+              <p>{t("home.benefit5Body")}</p>
             </Reveal>
           </div>
         </div>
@@ -185,40 +143,34 @@ export default function Home() {
       <section className="section" id="how-it-works">
         <div className="container">
           <Reveal as="h2" className="section-title">
-            How Funall works
+            {t("home.howItWorksTitle")}
           </Reveal>
           <div className="two-col">
             <Reveal className="how-card">
-              <span className="step-kicker">For renters</span>
+              <span className="step-kicker">{t("home.forRenters")}</span>
               <ol className="step-list">
                 <li>
-                  <strong>Search &amp; filter.</strong> By category, location, age range, and whether an
-                  attendant is included.
+                  <strong>{t("home.renterStep1Strong")}</strong> {t("home.renterStep1")}
                 </li>
                 <li>
-                  <strong>Message the owner.</strong> Ask questions and check availability, directly in
-                  the app.
+                  <strong>{t("home.renterStep2Strong")}</strong> {t("home.renterStep2")}
                 </li>
                 <li>
-                  <strong>Book with confidence.</strong> See real view counts and audience details
-                  before you commit.
+                  <strong>{t("home.renterStep3Strong")}</strong> {t("home.renterStep3")}
                 </li>
               </ol>
             </Reveal>
             <Reveal className="how-card" delay={120}>
-              <span className="step-kicker">For owners</span>
+              <span className="step-kicker">{t("home.forOwners")}</span>
               <ol className="step-list">
                 <li>
-                  <strong>List once, flat fee.</strong> $100 every 6 months — no commission on what you
-                  charge.
+                  <strong>{t("home.ownerStep1Strong")}</strong> {t("home.ownerStep1")}
                 </li>
                 <li>
-                  <strong>Get a fair shot at Featured.</strong> Every paid listing rotates in, based on
-                  who's waited longest — not who spent the most.
+                  <strong>{t("home.ownerStep2Strong")}</strong> {t("home.ownerStep2")}
                 </li>
                 <li>
-                  <strong>See it working.</strong> Real-time views, message counts, and featured
-                  history in your dashboard.
+                  <strong>{t("home.ownerStep3Strong")}</strong> {t("home.ownerStep3")}
                 </li>
               </ol>
             </Reveal>
@@ -229,21 +181,21 @@ export default function Home() {
       <Reveal as="section" className="section pricing-section" id="pricing">
         <div className="container pricing-inner">
           <div className="pricing-copy">
-            <h2>Simple pricing. No surprises.</h2>
-            <p>Renters always browse and message for free. Owners pay one flat listing fee — that's it.</p>
+            <h2>{t("home.pricingTitle")}</h2>
+            <p>{t("home.pricingLede")}</p>
           </div>
           <div className="price-card">
             <p className="price-amount">
-              $100 <span>/ 6 months</span>
+              {t("home.priceAmount")} <span>{t("home.pricePeriod")}</span>
             </p>
             <ul className="price-features">
-              <li>Unlimited photos &amp; video per listing</li>
-              <li>0% commission on what you charge renters</li>
-              <li>Full owner analytics dashboard</li>
-              <li>Equal shot at the Featured Today rotation</li>
+              <li>{t("home.priceFeature1")}</li>
+              <li>{t("home.priceFeature2")}</li>
+              <li>{t("home.priceFeature3")}</li>
+              <li>{t("home.priceFeature4")}</li>
             </ul>
             <Link to={ownerCta} className="btn btn-primary btn-block">
-              {user?.role === "owner" ? "Go to your dashboard" : "Join as an owner"}
+              {user?.role === "owner" ? t("home.goToDashboard") : t("home.joinAsOwner")}
             </Link>
           </div>
         </div>
@@ -252,17 +204,15 @@ export default function Home() {
       <section className="section section-alt">
         <div className="container">
           <Reveal as="h2" className="section-title">
-            What people are saying
+            {t("home.testimonialsTitle")}
           </Reveal>
-          <p className="testimonials-note">
-            Funall is brand new — these cards are sample placeholders, not real reviews yet.
-          </p>
+          <p className="testimonials-note">{t("home.testimonialsNote")}</p>
           <div className="testimonial-grid">
-            {TESTIMONIALS.map((t, i) => (
-              <Reveal as="div" className="testimonial-card" delay={i * 80} key={t.role}>
-                <span className="testimonial-badge">Sample</span>
-                <p className="testimonial-quote">&ldquo;{t.quote}&rdquo;</p>
-                <p className="testimonial-role">{t.role}</p>
+            {TESTIMONIAL_KEYS.map((key, i) => (
+              <Reveal as="div" className="testimonial-card" delay={i * 80} key={key}>
+                <span className="testimonial-badge">{t("home.testimonialSample")}</span>
+                <p className="testimonial-quote">&ldquo;{t(`home.${key}Quote`)}&rdquo;</p>
+                <p className="testimonial-role">{t(`home.${key}Role`)}</p>
               </Reveal>
             ))}
           </div>
@@ -272,11 +222,11 @@ export default function Home() {
       <section className="section" id="faq">
         <div className="container">
           <Reveal as="h2" className="section-title">
-            Frequently asked questions
+            {t("home.faqTitle")}
           </Reveal>
           <div className="faq-list">
-            {FAQS.map((item, i) => (
-              <FaqItem key={item.q} question={item.q} answer={item.a} defaultOpen={i === 0} />
+            {FAQ_KEYS.map((key, i) => (
+              <FaqItem key={key} question={t(`home.${key}Q`)} answer={t(`home.${key}A`)} defaultOpen={i === 0} />
             ))}
           </div>
         </div>
@@ -284,10 +234,10 @@ export default function Home() {
 
       <Reveal as="section" className="section cta-section">
         <div className="container cta-inner">
-          <h2>Ready to see what's available near you?</h2>
-          <p>Browse live listings now — no account needed until you're ready to message an owner.</p>
+          <h2>{t("home.ctaTitle")}</h2>
+          <p>{t("home.ctaBody")}</p>
           <Link to="/browse" className="btn btn-primary">
-            Browse attractions
+            {t("home.browseAttractions")}
           </Link>
         </div>
       </Reveal>
@@ -295,7 +245,7 @@ export default function Home() {
       {showStickyCta && (
         <div className="mobile-sticky-cta">
           <Link to="/browse" className="btn btn-primary btn-block">
-            Browse attractions
+            {t("home.browseAttractions")}
           </Link>
         </div>
       )}
@@ -320,12 +270,13 @@ function useScrolledPast(ref) {
 }
 
 function LiveStatDemo() {
+  const { t } = useLanguage();
   const [ref, value] = useCountUp(142);
   return (
     <div className="mini-demo" ref={ref}>
       <span className="live-view">
         <span className="live-dot" aria-hidden="true" />
-        <span className="count">{value}</span> views this week
+        <span className="count">{value}</span> {t("home.liveStatSuffix")}
       </span>
     </div>
   );

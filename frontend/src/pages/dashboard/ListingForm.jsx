@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError, assetUrl, getToken, API_URL } from "../../api/client";
+import { useLanguage } from "../../context/LanguageContext";
 import "./Dashboard.css";
 
 const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
@@ -23,6 +24,7 @@ export default function ListingForm() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [listing, setListing] = useState(null);
@@ -50,9 +52,9 @@ export default function ListingForm() {
           attendantRequired: !!d.listing.attendant_required,
         });
       })
-      .catch(() => setError("Couldn't load this listing."))
+      .catch(() => setError(t("dashboard.loadListingError")))
       .finally(() => setLoading(false));
-  }, [id, isEdit]);
+  }, [id, isEdit, t]);
 
   function updateField(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -79,13 +81,13 @@ export default function ListingForm() {
       if (isEdit) {
         const { listing: updated } = await api.put(`/listings/${id}`, payload);
         setListing(updated);
-        setSuccess("Changes saved.");
+        setSuccess(t("dashboard.changesSaved"));
       } else {
         const { listing: created } = await api.post("/listings", payload);
         navigate(`/dashboard/${created.id}/edit`, { replace: true });
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't save this listing.");
+      setError(err instanceof ApiError ? err.message : t("dashboard.saveError"));
     } finally {
       setSaving(false);
     }
@@ -102,16 +104,16 @@ export default function ListingForm() {
   return (
     <div className="dashboard-page container-narrow">
       <Link className="back-link" to="/dashboard">
-        ← Back to dashboard
+        ← {t("dashboard.backToDashboard")}
       </Link>
-      <h1>{isEdit ? "Manage listing" : "New listing"}</h1>
+      <h1>{isEdit ? t("dashboard.manageListingTitle") : t("dashboard.newListingTitle")}</h1>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
       <form onSubmit={handleSubmit} className="card">
         <div className="field">
-          <label htmlFor="title">Title</label>
+          <label htmlFor="title">{t("dashboard.formTitle")}</label>
           <input
             id="title"
             type="text"
@@ -122,7 +124,7 @@ export default function ListingForm() {
         </div>
 
         <div className="field">
-          <label htmlFor="description">Description</label>
+          <label htmlFor="description">{t("dashboard.formDescription")}</label>
           <textarea
             id="description"
             value={form.description}
@@ -132,21 +134,21 @@ export default function ListingForm() {
 
         <div className="form-row">
           <div className="field">
-            <label htmlFor="category">Category</label>
+            <label htmlFor="category">{t("dashboard.formCategory")}</label>
             <select id="category" value={form.category} onChange={(e) => updateField("category", e.target.value)}>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c[0].toUpperCase() + c.slice(1)}
+                  {t(`dashboard.categories.${c}`)}
                 </option>
               ))}
             </select>
           </div>
           <div className="field">
-            <label htmlFor="location">Location</label>
+            <label htmlFor="location">{t("dashboard.formLocation")}</label>
             <input
               id="location"
               type="text"
-              placeholder="City or area"
+              placeholder={t("dashboard.formLocationPlaceholder")}
               value={form.location}
               onChange={(e) => updateField("location", e.target.value)}
             />
@@ -155,7 +157,7 @@ export default function ListingForm() {
 
         <div className="form-row">
           <div className="field">
-            <label htmlFor="ageMin">Min age</label>
+            <label htmlFor="ageMin">{t("dashboard.formMinAge")}</label>
             <input
               id="ageMin"
               type="number"
@@ -165,7 +167,7 @@ export default function ListingForm() {
             />
           </div>
           <div className="field">
-            <label htmlFor="ageMax">Max age</label>
+            <label htmlFor="ageMax">{t("dashboard.formMaxAge")}</label>
             <input
               id="ageMax"
               type="number"
@@ -178,15 +180,15 @@ export default function ListingForm() {
 
         <div className="form-row">
           <div className="field">
-            <label htmlFor="gender">Audience</label>
+            <label htmlFor="gender">{t("dashboard.formAudience")}</label>
             <select
               id="gender"
               value={form.audienceGender}
               onChange={(e) => updateField("audienceGender", e.target.value)}
             >
-              <option value="all">All genders</option>
-              <option value="male">Boys</option>
-              <option value="female">Girls</option>
+              <option value="all">{t("dashboard.allGenders")}</option>
+              <option value="male">{t("dashboard.boys")}</option>
+              <option value="female">{t("dashboard.girls")}</option>
             </select>
           </div>
           <div className="field">
@@ -197,13 +199,13 @@ export default function ListingForm() {
                 checked={form.attendantRequired}
                 onChange={(e) => updateField("attendantRequired", e.target.checked)}
               />
-              Attendant required
+              {t("dashboard.formAttendantRequired")}
             </label>
           </div>
         </div>
 
         <button className="btn btn-primary" type="submit" disabled={saving}>
-          {saving ? <span className="spinner" /> : isEdit ? "Save changes" : "Create listing"}
+          {saving ? <span className="spinner" /> : isEdit ? t("dashboard.saveChanges") : t("dashboard.createListing")}
         </button>
       </form>
 
@@ -218,6 +220,7 @@ export default function ListingForm() {
 }
 
 function MediaManager({ listingId, media, onChange }) {
+  const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
@@ -237,10 +240,10 @@ function MediaManager({ listingId, media, onChange }) {
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Upload failed");
+      if (!res.ok) throw new Error(data?.error || t("dashboard.uploadFailed"));
       onChange((prev) => [...prev, ...data.media]);
     } catch (err) {
-      setError(err.message || "Couldn't upload those files.");
+      setError(err.message || t("dashboard.uploadError"));
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -249,8 +252,8 @@ function MediaManager({ listingId, media, onChange }) {
 
   return (
     <section className="card dashboard-section">
-      <h2>Photos &amp; video</h2>
-      <p>Unlimited uploads. The first photo is used as the cover on listing cards.</p>
+      <h2>{t("dashboard.photosVideoTitle")}</h2>
+      <p>{t("dashboard.photosVideoBody")}</p>
 
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -265,7 +268,7 @@ function MediaManager({ listingId, media, onChange }) {
       )}
 
       <label className="upload-btn btn btn-secondary btn-sm">
-        {uploading ? <span className="spinner spinner-dark" /> : "Upload photos or video"}
+        {uploading ? <span className="spinner spinner-dark" /> : t("dashboard.uploadPhotosVideo")}
         <input type="file" multiple accept="image/*,video/*" hidden onChange={handleFiles} disabled={uploading} />
       </label>
     </section>
@@ -273,6 +276,7 @@ function MediaManager({ listingId, media, onChange }) {
 }
 
 function PaymentPanel({ listing, onListingChange }) {
+  const { t } = useLanguage();
   const [couponCode, setCouponCode] = useState("");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState("");
@@ -330,7 +334,7 @@ function PaymentPanel({ listing, onListingChange }) {
         onListingChange(fresh);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Checkout failed.");
+      setError(err instanceof ApiError ? err.message : t("dashboard.checkoutFailed"));
     } finally {
       setCheckoutLoading(false);
     }
@@ -346,7 +350,7 @@ function PaymentPanel({ listing, onListingChange }) {
       onListingChange(fresh);
       savePending(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't complete that payment.");
+      setError(err instanceof ApiError ? err.message : t("dashboard.couldntComplete"));
     } finally {
       setCompleting(false);
     }
@@ -362,7 +366,7 @@ function PaymentPanel({ listing, onListingChange }) {
       onListingChange(fresh);
       savePending(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Not enough views yet.");
+      setError(err instanceof ApiError ? err.message : t("dashboard.notEnoughViews"));
     } finally {
       setCompleting(false);
     }
@@ -372,11 +376,11 @@ function PaymentPanel({ listing, onListingChange }) {
 
   return (
     <section className="card dashboard-section">
-      <h2>Listing plan</h2>
+      <h2>{t("dashboard.listingPlanTitle")}</h2>
       <p>
-        Status: <span className={`badge badge-status-${listing.status}`}>{listing.status}</span>
+        {t("dashboard.status")}: <span className={`badge badge-status-${listing.status}`}>{listing.status}</span>
         {listing.subscription_expires_at && (
-          <> · Renews or expires {new Date(listing.subscription_expires_at).toLocaleDateString()}</>
+          <> · {t("dashboard.renewsOrExpires")} {new Date(listing.subscription_expires_at).toLocaleDateString()}</>
         )}
       </p>
 
@@ -385,49 +389,45 @@ function PaymentPanel({ listing, onListingChange }) {
       {pending?.isTrial ? (
         <div className="trial-panel">
           <p>
-            <strong>Free trial active.</strong> This listing becomes chargeable once it reaches its view
-            threshold.
+            <strong>{t("dashboard.trialActiveStrong")}</strong> {t("dashboard.trialActiveBody")}
           </p>
           {deferredStatus && (
-            <p>
-              Progress: {deferredStatus.currentViews} / {deferredStatus.viewThreshold} views
-            </p>
+            <p>{t("dashboard.progressLabel", { current: deferredStatus.currentViews, threshold: deferredStatus.viewThreshold })}</p>
           )}
           <button
             className="btn btn-primary btn-sm"
             onClick={handleCompleteDeferred}
             disabled={completing || !deferredStatus?.thresholdMet}
           >
-            {completing ? <span className="spinner" /> : "Complete payment now"}
+            {completing ? <span className="spinner" /> : t("dashboard.completePaymentNow")}
           </button>
           {deferredStatus && !deferredStatus.thresholdMet && (
-            <p className="field-hint">Not chargeable yet — check back once the threshold is met.</p>
+            <p className="field-hint">{t("dashboard.notChargeableYet")}</p>
           )}
         </div>
       ) : pending ? (
         <div className="trial-panel">
           <p>
-            <strong>Payment pending.</strong> No real payment processor is connected yet (see the product
-            spec) — this completes the stub flow the same way a real Stripe webhook would.
+            <strong>{t("dashboard.paymentPendingStrong")}</strong> {t("dashboard.paymentPendingBody")}
           </p>
           <button className="btn btn-primary btn-sm" onClick={handleCompleteDemoPayment} disabled={completing}>
-            {completing ? <span className="spinner" /> : "Complete demo payment"}
+            {completing ? <span className="spinner" /> : t("dashboard.completeDemoPayment")}
           </button>
         </div>
       ) : (
         <form onSubmit={handleCheckout} className="checkout-form">
           <div className="field">
-            <label htmlFor="coupon">Coupon code (optional)</label>
+            <label htmlFor="coupon">{t("dashboard.couponLabel")}</label>
             <input
               id="coupon"
               type="text"
-              placeholder="e.g. SAVE25"
+              placeholder={t("dashboard.couponPlaceholder")}
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value)}
             />
           </div>
           <button className="btn btn-primary btn-sm" type="submit" disabled={checkoutLoading}>
-            {checkoutLoading ? <span className="spinner" /> : "Pay $100 / activate listing"}
+            {checkoutLoading ? <span className="spinner" /> : t("dashboard.payAndActivate")}
           </button>
         </form>
       )}

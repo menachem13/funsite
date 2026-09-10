@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import ListingCard from "../components/ListingCard";
 import { api } from "../api/client";
+import { useLanguage } from "../context/LanguageContext";
 import "./Browse.css";
 
 const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
@@ -16,6 +17,7 @@ const DEFAULT_FILTERS = {
 };
 
 export default function Browse() {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   const [listings, setListings] = useState([]);
@@ -25,8 +27,8 @@ export default function Browse() {
 
   // Light debounce on free-text search so we're not firing a request per keystroke.
   useEffect(() => {
-    const t = setTimeout(() => setFilters((f) => ({ ...f, q: searchInput })), 350);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setFilters((f) => ({ ...f, q: searchInput })), 350);
+    return () => clearTimeout(timer);
   }, [searchInput]);
 
   useEffect(() => {
@@ -44,9 +46,9 @@ export default function Browse() {
     api
       .get(`/listings?${params.toString()}`)
       .then((d) => setListings(d.listings))
-      .catch(() => setError("Couldn't load listings. Try again in a moment."))
+      .catch(() => setError(t("browse.loadError")))
       .finally(() => setLoading(false));
-  }, [filters]);
+  }, [filters, t]);
 
   const featuredInResults = useMemo(
     () => featured && listings.some((l) => l.id === featured.id),
@@ -65,63 +67,63 @@ export default function Browse() {
   return (
     <div className="browse-page container">
       <div className="browse-header">
-        <h1>Browse attractions</h1>
-        <p>Filter by category, location, and audience to find the right fit for your event.</p>
+        <h1>{t("browse.title")}</h1>
+        <p>{t("browse.subtitle")}</p>
       </div>
 
       <div className="browse-filters card">
         <div className="field">
-          <label htmlFor="q">Search</label>
+          <label htmlFor="q">{t("browse.search")}</label>
           <input
             id="q"
             type="search"
-            placeholder="Bounce house, photo booth…"
+            placeholder={t("browse.searchPlaceholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
 
         <div className="field">
-          <label htmlFor="category">Category</label>
+          <label htmlFor="category">{t("browse.category")}</label>
           <select id="category" value={filters.category} onChange={(e) => updateFilter("category", e.target.value)}>
-            <option value="">All categories</option>
+            <option value="">{t("browse.allCategories")}</option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {c[0].toUpperCase() + c.slice(1)}
+                {t(`browse.categories.${c}`)}
               </option>
             ))}
           </select>
         </div>
 
         <div className="field">
-          <label htmlFor="location">Location</label>
+          <label htmlFor="location">{t("browse.location")}</label>
           <input
             id="location"
             type="text"
-            placeholder="City or area"
+            placeholder={t("browse.locationPlaceholder")}
             value={filters.location}
             onChange={(e) => updateFilter("location", e.target.value)}
           />
         </div>
 
         <div className="field">
-          <label htmlFor="gender">Suitable for</label>
+          <label htmlFor="gender">{t("browse.suitableFor")}</label>
           <select id="gender" value={filters.gender} onChange={(e) => updateFilter("gender", e.target.value)}>
-            <option value="">Any</option>
-            <option value="all">All genders</option>
-            <option value="male">Boys</option>
-            <option value="female">Girls</option>
+            <option value="">{t("browse.any")}</option>
+            <option value="all">{t("browse.allGenders")}</option>
+            <option value="male">{t("browse.boys")}</option>
+            <option value="female">{t("browse.girls")}</option>
           </select>
         </div>
 
         <div className="field age-range">
-          <label>Age range</label>
+          <label>{t("browse.ageRange")}</label>
           <div className="age-inputs">
             <input
               type="number"
               min="0"
-              placeholder="Min"
-              aria-label="Minimum age"
+              placeholder={t("browse.min")}
+              aria-label={t("browse.min")}
               value={filters.minAge}
               onChange={(e) => updateFilter("minAge", e.target.value)}
             />
@@ -129,8 +131,8 @@ export default function Browse() {
             <input
               type="number"
               min="0"
-              placeholder="Max"
-              aria-label="Maximum age"
+              placeholder={t("browse.max")}
+              aria-label={t("browse.max")}
               value={filters.maxAge}
               onChange={(e) => updateFilter("maxAge", e.target.value)}
             />
@@ -145,20 +147,20 @@ export default function Browse() {
               checked={filters.attendantRequired === "true"}
               onChange={(e) => updateFilter("attendantRequired", e.target.checked ? "true" : "")}
             />
-            Attendant included
+            {t("browse.attendantIncluded")}
           </label>
         </div>
 
         <button className="btn btn-ghost btn-sm reset-btn" type="button" onClick={resetFilters}>
-          Reset filters
+          {t("browse.resetFilters")}
         </button>
       </div>
 
       {featured && !featuredInResults && (
         <div className="featured-banner card">
-          <span className="badge badge-featured">Featured Today</span>
+          <span className="badge badge-featured">{t("browse.featuredToday")}</span>
           <span>
-            <strong>{featured.title}</strong> is today's featured listing — clear your filters to see it.
+            <strong>{featured.title}</strong> {t("browse.featuredBannerSuffix")}
           </span>
         </div>
       )}
@@ -171,7 +173,7 @@ export default function Browse() {
         </div>
       ) : listings.length === 0 ? (
         <div className="empty-state">
-          <p>No listings match those filters yet.</p>
+          <p>{t("browse.noResults")}</p>
         </div>
       ) : (
         <div className="listing-grid">
