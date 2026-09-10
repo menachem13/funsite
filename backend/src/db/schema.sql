@@ -32,6 +32,14 @@ CREATE TABLE IF NOT EXISTS listings (
   audience_age_max INTEGER,
   audience_gender TEXT NOT NULL DEFAULT 'all' CHECK (audience_gender IN ('all', 'male', 'female')),
   attendant_required BOOLEAN NOT NULL DEFAULT false,
+  -- Optional group-size guidance an owner can provide ("best for up to N
+  -- people"). NULL means the owner hasn't specified one — the UI must never
+  -- invent or display a number when this is NULL.
+  capacity INTEGER CHECK (capacity IS NULL OR capacity > 0),
+  -- Optional tags for which kinds of events this attraction suits (camp,
+  -- school, community, family, large, other). NULL/empty means unspecified —
+  -- an event-type filter should simply not match this listing, not assume it.
+  event_types TEXT[],
   status TEXT NOT NULL DEFAULT 'inactive' CHECK (status IN ('inactive', 'active', 'expired')),
   subscription_expires_at TIMESTAMPTZ,
   view_count INTEGER NOT NULL DEFAULT 0,
@@ -41,9 +49,15 @@ CREATE TABLE IF NOT EXISTS listings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- See the payments.coupon_id comment below for why CREATE TABLE IF NOT
+-- EXISTS alone doesn't add new columns to an already-deployed table.
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS capacity INTEGER;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS event_types TEXT[];
+
 CREATE INDEX IF NOT EXISTS idx_listings_owner ON listings(owner_id);
 CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
 CREATE INDEX IF NOT EXISTS idx_listings_category ON listings(category);
+CREATE INDEX IF NOT EXISTS idx_listings_event_types ON listings USING GIN (event_types);
 
 CREATE TABLE IF NOT EXISTS listing_media (
   id SERIAL PRIMARY KEY,

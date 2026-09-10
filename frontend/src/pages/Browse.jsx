@@ -6,6 +6,7 @@ import { useLanguage } from "../context/LanguageContext";
 import "./Browse.css";
 
 const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
+const EVENT_TYPES = ["camp", "school", "community", "family", "large", "other"];
 
 const DEFAULT_FILTERS = {
   category: "",
@@ -15,6 +16,8 @@ const DEFAULT_FILTERS = {
   gender: "",
   attendantRequired: "",
   q: "",
+  eventType: "",
+  groupSize: "",
 };
 
 export default function Browse() {
@@ -27,7 +30,9 @@ export default function Browse() {
     ...DEFAULT_FILTERS,
     category: searchParams.get("category") || "",
     q: searchParams.get("q") || "",
+    eventType: searchParams.get("eventType") || "",
   }));
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
   const [listings, setListings] = useState([]);
   const [featured, setFeatured] = useState(null);
@@ -105,6 +110,18 @@ export default function Browse() {
         </div>
 
         <div className="field">
+          <label htmlFor="eventType">{t("browse.eventType")}</label>
+          <select id="eventType" value={filters.eventType} onChange={(e) => updateFilter("eventType", e.target.value)}>
+            <option value="">{t("browse.anyEventType")}</option>
+            {EVENT_TYPES.map((v) => (
+              <option key={v} value={v}>
+                {t(`eventTypes.${v}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="field">
           <label htmlFor="location">{t("browse.location")}</label>
           <input
             id="location"
@@ -115,50 +132,76 @@ export default function Browse() {
           />
         </div>
 
-        <div className="field">
-          <label htmlFor="gender">{t("browse.suitableFor")}</label>
-          <select id="gender" value={filters.gender} onChange={(e) => updateFilter("gender", e.target.value)}>
-            <option value="">{t("browse.any")}</option>
-            <option value="all">{t("browse.allGenders")}</option>
-            <option value="male">{t("browse.boys")}</option>
-            <option value="female">{t("browse.girls")}</option>
-          </select>
-        </div>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm more-filters-toggle"
+          onClick={() => setMoreFiltersOpen((v) => !v)}
+          aria-expanded={moreFiltersOpen}
+        >
+          {moreFiltersOpen ? t("browse.fewerFilters") : t("browse.moreFilters")}
+        </button>
 
-        <div className="field age-range">
-          <label>{t("browse.ageRange")}</label>
-          <div className="age-inputs">
-            <input
-              type="number"
-              min="0"
-              placeholder={t("browse.min")}
-              aria-label={t("browse.min")}
-              value={filters.minAge}
-              onChange={(e) => updateFilter("minAge", e.target.value)}
-            />
-            <span>–</span>
-            <input
-              type="number"
-              min="0"
-              placeholder={t("browse.max")}
-              aria-label={t("browse.max")}
-              value={filters.maxAge}
-              onChange={(e) => updateFilter("maxAge", e.target.value)}
-            />
-          </div>
-        </div>
+        {moreFiltersOpen && (
+          <>
+            <div className="field">
+              <label htmlFor="groupSize">{t("browse.groupSize")}</label>
+              <input
+                id="groupSize"
+                type="number"
+                min="1"
+                placeholder={t("browse.groupSizePlaceholder")}
+                value={filters.groupSize}
+                onChange={(e) => updateFilter("groupSize", e.target.value)}
+              />
+              <p className="field-hint">{t("browse.groupSizeHint")}</p>
+            </div>
 
-        <div className="field">
-          <label className="checkbox-row" htmlFor="attendant">
-            <input
-              id="attendant"
-              type="checkbox"
-              checked={filters.attendantRequired === "true"}
-              onChange={(e) => updateFilter("attendantRequired", e.target.checked ? "true" : "")}
-            />
-            {t("browse.attendantIncluded")}
-          </label>
-        </div>
+            <div className="field">
+              <label htmlFor="gender">{t("browse.suitableFor")}</label>
+              <select id="gender" value={filters.gender} onChange={(e) => updateFilter("gender", e.target.value)}>
+                <option value="">{t("browse.any")}</option>
+                <option value="all">{t("browse.allGenders")}</option>
+                <option value="male">{t("browse.boys")}</option>
+                <option value="female">{t("browse.girls")}</option>
+              </select>
+            </div>
+
+            <div className="field age-range">
+              <label>{t("browse.ageRange")}</label>
+              <div className="age-inputs">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder={t("browse.min")}
+                  aria-label={t("browse.min")}
+                  value={filters.minAge}
+                  onChange={(e) => updateFilter("minAge", e.target.value)}
+                />
+                <span>–</span>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder={t("browse.max")}
+                  aria-label={t("browse.max")}
+                  value={filters.maxAge}
+                  onChange={(e) => updateFilter("maxAge", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label className="checkbox-row" htmlFor="attendant">
+                <input
+                  id="attendant"
+                  type="checkbox"
+                  checked={filters.attendantRequired === "true"}
+                  onChange={(e) => updateFilter("attendantRequired", e.target.checked ? "true" : "")}
+                />
+                {t("browse.attendantIncluded")}
+              </label>
+            </div>
+          </>
+        )}
 
         <button className="btn btn-ghost btn-sm reset-btn" type="button" onClick={resetFilters}>
           {t("browse.resetFilters")}

@@ -144,11 +144,18 @@ export default function ListingDetail() {
                   : t("listingDetail.girls")}
             </span>
             {listing.attendant_required && <span className="tag">{t("listingDetail.attendantIncluded")}</span>}
+            {listing.capacity != null && <span className="tag">{t("listingDetail.capacity", { count: listing.capacity })}</span>}
+            {(listing.event_types || []).map((value) => (
+              <span className="tag" key={value}>
+                {t(`eventTypes.${value}`)}
+              </span>
+            ))}
           </div>
 
           {listing.description && <p className="detail-description">{listing.description}</p>}
 
           <div className="detail-contact card">
+            {!isOwnListing && <h2 className="contact-owner-heading">{t("listingDetail.contactOwnerHeading")}</h2>}
             {isOwnListing ? (
               <>
                 <p>{t("listingDetail.yourListing")}</p>

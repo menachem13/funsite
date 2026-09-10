@@ -32,7 +32,8 @@
   color: var(--ink-faint);
 }
 
-.reset-btn {
+.reset-btn,
+.more-filters-toggle {
   grid-column: 1 / -1;
   justify-self: start;
 }

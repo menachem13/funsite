@@ -5,6 +5,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import "./Dashboard.css";
 
 const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
+const EVENT_TYPES = ["camp", "school", "community", "family", "large", "other"];
 const EMPTY_FORM = {
   title: "",
   description: "",
@@ -14,6 +15,8 @@ const EMPTY_FORM = {
   audienceAgeMax: "",
   audienceGender: "all",
   attendantRequired: false,
+  capacity: "",
+  eventTypes: [],
 };
 
 function paymentStorageKey(listingId) {
@@ -50,6 +53,8 @@ export default function ListingForm() {
           audienceAgeMax: d.listing.audience_age_max ?? "",
           audienceGender: d.listing.audience_gender || "all",
           attendantRequired: !!d.listing.attendant_required,
+          capacity: d.listing.capacity ?? "",
+          eventTypes: d.listing.event_types || [],
         });
       })
       .catch(() => setError(t("dashboard.loadListingError")))
@@ -58,6 +63,15 @@ export default function ListingForm() {
 
   function updateField(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function toggleEventType(value) {
+    setForm((f) => ({
+      ...f,
+      eventTypes: f.eventTypes.includes(value)
+        ? f.eventTypes.filter((v) => v !== value)
+        : [...f.eventTypes, value],
+    }));
   }
 
   async function handleSubmit(e) {
@@ -75,6 +89,8 @@ export default function ListingForm() {
       audienceAgeMax: form.audienceAgeMax === "" ? null : Number(form.audienceAgeMax),
       audienceGender: form.audienceGender,
       attendantRequired: form.attendantRequired,
+      capacity: form.capacity === "" ? null : Number(form.capacity),
+      eventTypes: form.eventTypes,
     };
 
     try {
@@ -201,6 +217,38 @@ export default function ListingForm() {
               />
               {t("dashboard.formAttendantRequired")}
             </label>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="field">
+            <label htmlFor="capacity">{t("dashboard.formCapacity")}</label>
+            <input
+              id="capacity"
+              type="number"
+              min="1"
+              placeholder={t("dashboard.formCapacityPlaceholder")}
+              value={form.capacity}
+              onChange={(e) => updateField("capacity", e.target.value)}
+            />
+            <p className="field-hint">{t("dashboard.formCapacityHint")}</p>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>{t("dashboard.formEventTypes")}</label>
+          <p className="field-hint">{t("dashboard.formEventTypesHint")}</p>
+          <div className="checkbox-grid">
+            {EVENT_TYPES.map((value) => (
+              <label className="checkbox-row" key={value}>
+                <input
+                  type="checkbox"
+                  checked={form.eventTypes.includes(value)}
+                  onChange={() => toggleEventType(value)}
+                />
+                {t(`eventTypes.${value}`)}
+              </label>
+            ))}
           </div>
         </div>
 

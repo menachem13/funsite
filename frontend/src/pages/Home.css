@@ -351,21 +351,111 @@
   box-shadow: var(--shadow-card);
 }
 
-.bento-large {
-  grid-column: span 2;
+/* Two-path chooser (customer vs. provider) */
+
+.paths-section {
+  padding: 56px 0 0;
+}
+
+.paths-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.path-card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 30px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.path-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+
+.path-card p {
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+
+.path-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.path-card-customer {
   background: linear-gradient(135deg, #efedfd 0%, #f7f8fc 70%);
 }
 
-.mini-demo {
-  margin-top: 16px;
+.path-card-provider {
+  background: var(--surface);
+}
+
+/* "What are you planning?" picker */
+
+.planning-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.planning-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 18px;
-  width: fit-content;
+  border-radius: var(--radius-card);
+  text-align: center;
+  font-weight: 600;
+  color: var(--ink);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.planning-card:hover {
+  border-color: rgba(21, 21, 46, 0.15);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+
+.planning-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+/* Provider section */
+
+.provider-benefit-list {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.provider-benefit-list li {
+  color: var(--ink-soft);
+  font-size: 0.94rem;
+}
+
+.provider-benefit-list li strong {
+  color: var(--ink);
+  display: block;
+  font-size: 0.98rem;
 }
 
 /* Pricing */
@@ -426,52 +516,6 @@
   content: "✓ ";
   color: var(--live);
   font-weight: 700;
-}
-
-/* Trust / social proof bar (sample data — see copy) */
-
-.trust-section {
-  padding-top: 64px;
-  padding-bottom: 64px;
-}
-
-.trust-eyebrow {
-  text-align: center;
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-.trust-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  max-width: 720px;
-  margin: 0 auto;
-}
-
-.trust-tile {
-  text-align: center;
-}
-
-.trust-number {
-  font-family: var(--font-mono);
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin: 0 0 4px;
-}
-
-.trust-label {
-  font-size: 0.85rem;
-  color: var(--ink-faint);
-  margin: 0;
-}
-
-.trust-footnote {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--ink-faint);
-  margin: 20px 0 0;
 }
 
 /* Testimonials (sample placeholders) */
@@ -652,7 +696,6 @@
     grid-template-columns: 1fr;
   }
 
-  .trust-grid,
   .testimonial-grid {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -671,6 +714,11 @@
     grid-column: span 2;
   }
 
+  .paths-grid,
+  .planning-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .hero-visual {
     order: -1;
   }
@@ -678,6 +726,10 @@
 
 @media (max-width: 640px) {
   .bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .paths-grid {
     grid-template-columns: 1fr;
   }
 

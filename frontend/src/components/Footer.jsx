@@ -38,7 +38,8 @@ export default function Footer() {
           <nav className="footer-col" aria-labelledby="footer-providers-heading">
             <h3 id="footer-providers-heading">{t("footer.providersHeading")}</h3>
             <Link to="/register">{t("footer.listAttraction")}</Link>
-            <Link to="/#pricing">{t("footer.pricing")}</Link>
+            <Link to="/#for-providers">{t("footer.pricing")}</Link>
+            <Link to="/login">{t("footer.providerLogin")}</Link>
           </nav>
 
           <nav className="footer-col" aria-labelledby="footer-funall-heading">

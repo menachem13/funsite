@@ -7,11 +7,17 @@ import Reveal from "../components/Reveal";
 import ConfettiBurst from "../components/ConfettiBurst";
 import Fireworks from "../components/Fireworks";
 import ListingCard from "../components/ListingCard";
-import { useCountUp } from "../hooks/useCountUp";
 import "./Home.css";
 
-const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6"];
+const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6", "faq7", "faq8", "faq9"];
 const TESTIMONIAL_KEYS = ["testimonial1", "testimonial2", "testimonial3"];
+const BENEFIT_KEYS = ["benefit1", "benefit2", "benefit3", "benefit4", "benefit5", "benefit6"];
+const PLANNING_OPTIONS = [
+  { icon: "⛺", value: "camp", labelKey: "camp" },
+  { icon: "🏫", value: "school", labelKey: "school" },
+  { icon: "🎉", value: "community", labelKey: "event" },
+  { icon: "✨", value: "other", labelKey: "other" },
+];
 
 // (icon, backend category value) pairs — the value is what /browse?category=
 // actually filters on, so these must stay in sync with Browse.jsx/ListingForm.jsx.
@@ -102,6 +108,46 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section paths-section">
+        <div className="container paths-grid">
+          <Reveal as={Link} to="/browse" className="path-card path-card-customer">
+            <span className="path-eyebrow">{t("home.pathCustomerEyebrow")}</span>
+            <p>{t("home.pathCustomerBody")}</p>
+            <span className="btn btn-primary">{t("home.pathCustomerCta")}</span>
+          </Reveal>
+          <Reveal as={Link} to={ownerCta} delay={80} className="path-card path-card-provider">
+            <span className="path-eyebrow">{t("home.pathProviderEyebrow")}</span>
+            <p>{t("home.pathProviderBody")}</p>
+            <span className="btn btn-secondary">{t("home.pathProviderCta")}</span>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="section section-alt" id="planning">
+        <div className="container">
+          <Reveal as="h2" className="section-title">
+            {t("home.planningTitle")}
+          </Reveal>
+          <p className="section-subtitle">{t("home.planningSubtitle")}</p>
+          <div className="planning-grid">
+            {PLANNING_OPTIONS.map((opt, i) => (
+              <Reveal
+                as={Link}
+                to={`/browse?eventType=${opt.value}`}
+                className="planning-card"
+                delay={i * 60}
+                key={opt.value}
+              >
+                <span className="planning-icon" aria-hidden="true">
+                  {opt.icon}
+                </span>
+                <span>{t(`home.planning.${opt.labelKey}`)}</span>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="section" id="categories">
         <div className="container">
           <Reveal as="h2" className="section-title">
@@ -131,54 +177,19 @@ export default function Home() {
 
       <RecentListings />
 
-      <Reveal as="section" className="section trust-section">
-        <div className="container">
-          <p className="eyebrow trust-eyebrow">{t("home.trustEyebrow")}</p>
-          <div className="trust-grid">
-            <div className="trust-tile">
-              <p className="trust-number">1,200+*</p>
-              <p className="trust-label">{t("home.trustListingViews")}</p>
-            </div>
-            <div className="trust-tile">
-              <p className="trust-number">300+*</p>
-              <p className="trust-label">{t("home.trustMessagesSent")}</p>
-            </div>
-            <div className="trust-tile">
-              <p className="trust-number">98%*</p>
-              <p className="trust-label">{t("home.trustResponseRate")}</p>
-            </div>
-          </div>
-          <p className="trust-footnote">{t("home.trustFootnote")}</p>
-        </div>
-      </Reveal>
-
       <section className="section section-alt">
         <div className="container">
           <Reveal as="h2" className="section-title">
             {t("home.benefitsTitle")}
           </Reveal>
+          <p className="section-subtitle">{t("home.benefitsSubtitle")}</p>
           <div className="bento-grid">
-            <Reveal as="div" className="bento-card bento-large">
-              <h3>{t("home.benefit1Title")}</h3>
-              <p>{t("home.benefit1Body")}</p>
-              <LiveStatDemo />
-            </Reveal>
-            <Reveal className="bento-card" delay={80}>
-              <h3>{t("home.benefit2Title")}</h3>
-              <p>{t("home.benefit2Body")}</p>
-            </Reveal>
-            <Reveal className="bento-card" delay={160}>
-              <h3>{t("home.benefit3Title")}</h3>
-              <p>{t("home.benefit3Body")}</p>
-            </Reveal>
-            <Reveal className="bento-card" delay={80}>
-              <h3>{t("home.benefit4Title")}</h3>
-              <p>{t("home.benefit4Body")}</p>
-            </Reveal>
-            <Reveal className="bento-card" delay={160}>
-              <h3>{t("home.benefit5Title")}</h3>
-              <p>{t("home.benefit5Body")}</p>
-            </Reveal>
+            {BENEFIT_KEYS.map((key, i) => (
+              <Reveal className="bento-card" delay={(i % 3) * 80} key={key}>
+                <h3>{t(`home.${key}Title`)}</h3>
+                <p>{t(`home.${key}Body`)}</p>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
@@ -201,6 +212,9 @@ export default function Home() {
                 <li>
                   <strong>{t("home.renterStep3Strong")}</strong> {t("home.renterStep3")}
                 </li>
+                <li>
+                  <strong>{t("home.renterStep4Strong")}</strong> {t("home.renterStep4")}
+                </li>
               </ol>
             </Reveal>
             <Reveal className="how-card" delay={120}>
@@ -221,11 +235,26 @@ export default function Home() {
         </div>
       </section>
 
-      <Reveal as="section" className="section pricing-section" id="pricing">
+      <Reveal as="section" className="section pricing-section" id="for-providers">
         <div className="container pricing-inner">
           <div className="pricing-copy">
-            <h2>{t("home.pricingTitle")}</h2>
-            <p>{t("home.pricingLede")}</p>
+            <span className="step-kicker">{t("home.providerEyebrow")}</span>
+            <h2>{t("home.providerTitle")}</h2>
+            <p>{t("home.providerSubtitle")}</p>
+            <ul className="provider-benefit-list">
+              <li>
+                <strong>{t("home.providerBenefit1Title")}</strong> {t("home.providerBenefit1Body")}
+              </li>
+              <li>
+                <strong>{t("home.providerBenefit2Title")}</strong> {t("home.providerBenefit2Body")}
+              </li>
+              <li>
+                <strong>{t("home.providerBenefit3Title")}</strong> {t("home.providerBenefit3Body")}
+              </li>
+              <li>
+                <strong>{t("home.providerBenefit4Title")}</strong> {t("home.providerBenefit4Body")}
+              </li>
+            </ul>
           </div>
           <div className="price-card">
             <p className="price-amount">
@@ -364,19 +393,6 @@ function useScrolledPast(ref) {
   }, [ref]);
 
   return scrolledPast;
-}
-
-function LiveStatDemo() {
-  const { t } = useLanguage();
-  const [ref, value] = useCountUp(142);
-  return (
-    <div className="mini-demo" ref={ref}>
-      <span className="live-view">
-        <span className="live-dot" aria-hidden="true" />
-        <span className="count">{value}</span> {t("home.liveStatSuffix")}
-      </span>
-    </div>
-  );
 }
 
 function FaqItem({ question, answer, defaultOpen = false }) {

@@ -46,6 +46,7 @@ export default function ListingCard({ listing, featured = false, cover }) {
           )}
           {listing.audience_gender === "all" && <span className="tag">{t("listingCard.allGenders")}</span>}
           {listing.attendant_required && <span className="tag">{t("listingCard.attendantIncluded")}</span>}
+          {listing.capacity != null && <span className="tag">{t("listingCard.capacity", { count: listing.capacity })}</span>}
         </div>
       </div>
     </Link>

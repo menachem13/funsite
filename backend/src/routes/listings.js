@@ -77,6 +77,8 @@ router.post(
       audienceAgeMax,
       audienceGender,
       attendantRequired,
+      capacity,
+      eventTypes,
     } = req.body || {};
 
     if (!title || !category) {
@@ -86,8 +88,9 @@ router.post(
     const { rows } = await pool.query(
       `INSERT INTO listings
          (owner_id, title, description, category, location,
-          audience_age_min, audience_age_max, audience_gender, attendant_required, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 'all'), COALESCE($9, false), 'inactive')
+          audience_age_min, audience_age_max, audience_gender, attendant_required,
+          capacity, event_types, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 'all'), COALESCE($9, false), $10, $11, 'inactive')
        RETURNING *`,
       [
         req.user.id,
@@ -99,6 +102,8 @@ router.post(
         audienceAgeMax ?? null,
         audienceGender || null,
         attendantRequired ?? null,
+        capacity ?? null,
+        Array.isArray(eventTypes) && eventTypes.length > 0 ? eventTypes : null,
       ]
     );
 
@@ -111,7 +116,7 @@ router.post(
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const { category, location, minAge, maxAge, gender, attendantRequired, q } = req.query;
+    const { category, location, minAge, maxAge, gender, attendantRequired, q, eventType, groupSize } = req.query;
 
     const conditions = [`status = 'active'`];
     const params = [];
@@ -143,6 +148,17 @@ router.get(
     if (q) {
       params.push(`%${q}%`);
       conditions.push(`(title ILIKE $${params.length} OR description ILIKE $${params.length})`);
+    }
+    if (eventType) {
+      params.push(eventType);
+      conditions.push(`event_types @> ARRAY[$${params.length}]::text[]`);
+    }
+    if (groupSize) {
+      // A listing only counts as fitting a requested group size if the owner
+      // actually specified a capacity that covers it — an unset capacity is
+      // never assumed to fit, per "never invent capacity" in the product spec.
+      params.push(parseInt(groupSize, 10));
+      conditions.push(`capacity >= $${params.length}`);
     }
 
     const { rows } = await pool.query(
@@ -216,6 +232,8 @@ router.put(
       audienceAgeMax,
       audienceGender,
       attendantRequired,
+      capacity,
+      eventTypes,
     } = req.body || {};
 
     const { rows } = await pool.query(
@@ -228,8 +246,10 @@ router.put(
          audience_age_max = COALESCE($6, audience_age_max),
          audience_gender = COALESCE($7, audience_gender),
          attendant_required = COALESCE($8, attendant_required),
+         capacity = COALESCE($9, capacity),
+         event_types = COALESCE($10, event_types),
          updated_at = now()
-       WHERE id = $9
+       WHERE id = $11
        RETURNING *`,
       [
         title ?? null,
@@ -240,6 +260,8 @@ router.put(
         audienceAgeMax ?? null,
         audienceGender ?? null,
         attendantRequired ?? null,
+        capacity ?? null,
+        Array.isArray(eventTypes) && eventTypes.length > 0 ? eventTypes : null,
         listingId,
       ]
     );

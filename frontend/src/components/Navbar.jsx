@@ -40,6 +40,15 @@ export default function Navbar() {
           <NavLink to="/browse" onClick={() => setMenuOpen(false)}>
             {t("nav.browse")}
           </NavLink>
+          <Link to="/#categories" onClick={() => setMenuOpen(false)}>
+            {t("nav.categories")}
+          </Link>
+          <Link to="/#how-it-works" onClick={() => setMenuOpen(false)}>
+            {t("nav.howItWorks")}
+          </Link>
+          <Link to="/#for-providers" onClick={() => setMenuOpen(false)}>
+            {t("nav.forProviders")}
+          </Link>
 
           {user?.role === "owner" && (
             <>
@@ -66,6 +75,11 @@ export default function Navbar() {
 
           <div className="nav-auth">
             <LanguageToggle />
+            {user?.role !== "owner" && (
+              <Link className="btn btn-primary btn-sm" to="/register" onClick={() => setMenuOpen(false)}>
+                {t("common.listAttraction")}
+              </Link>
+            )}
             {user ? (
               <>
                 <span className="nav-user">{user.name}</span>
@@ -78,7 +92,7 @@ export default function Navbar() {
                 <Link className="btn btn-ghost btn-sm" to="/login" onClick={() => setMenuOpen(false)}>
                   {t("nav.logIn")}
                 </Link>
-                <Link className="btn btn-primary btn-sm" to="/register" onClick={() => setMenuOpen(false)}>
+                <Link className="btn btn-ghost btn-sm" to="/register" onClick={() => setMenuOpen(false)}>
                   {t("nav.signUp")}
                 </Link>
               </>

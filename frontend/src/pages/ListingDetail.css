@@ -79,6 +79,11 @@
   margin-top: 24px;
 }
 
+.contact-owner-heading {
+  font-size: 1.05rem;
+  margin: 0 0 12px;
+}
+
 .detail-contact p {
   margin-bottom: 14px;
 }

@@ -73,7 +73,7 @@
   display: block;
 }
 
-@media (max-width: 780px) {
+@media (max-width: 980px) {
   .nav-toggle {
     display: flex;
     order: 2;
