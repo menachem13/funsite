@@ -116,7 +116,7 @@ router.post(
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const { category, location, minAge, maxAge, gender, attendantRequired, q, eventType, groupSize } = req.query;
+    const { category, location, minAge, maxAge, gender, attendantRequired, q, eventType, groupSize, sort } = req.query;
 
     const conditions = [`status = 'active'`];
     const params = [];
@@ -161,6 +161,16 @@ router.get(
       conditions.push(`capacity >= $${params.length}`);
     }
 
+    // Whitelisted, not interpolated from the raw query param — an ORDER BY
+    // built from unchecked user input is a SQL injection vector even though
+    // this endpoint takes no other free-form SQL fragments.
+    const SORTS = {
+      newest: 'l.created_at DESC',
+      popular: 'l.view_count DESC, l.created_at DESC',
+      az: 'l.title ASC',
+    };
+    const orderBy = SORTS[sort] || SORTS.newest;
+
     // LEFT JOIN (not INNER): a listing should never vanish from search
     // results just because something is off with its owner row. owner_id is
     // NOT NULL + FK, so `u` is missing in practice only if that invariant is
@@ -171,7 +181,7 @@ router.get(
        FROM listings l
        LEFT JOIN users u ON u.id = l.owner_id
        WHERE ${conditions.join(' AND ')}
-       ORDER BY l.created_at DESC`,
+       ORDER BY ${orderBy}`,
       params
     );
 

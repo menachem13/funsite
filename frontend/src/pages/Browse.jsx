@@ -21,6 +21,7 @@ const DEFAULT_FILTERS = {
   eventType: "",
   groupSize: "",
   eventDate: "",
+  sort: "newest",
 };
 
 export default function Browse() {
@@ -38,6 +39,7 @@ export default function Browse() {
     location: searchParams.get("location") || "",
     groupSize: searchParams.get("groupSize") || "",
     eventDate: searchParams.get("eventDate") || "",
+    sort: searchParams.get("sort") || "newest",
   }));
   // Open "more filters" by default if a link (e.g. the homepage find-an-attraction
   // panel) arrived with one of those filters already set, so the visitor can see
@@ -244,6 +246,20 @@ export default function Browse() {
       )}
 
       {error && <div className="alert alert-error">{error}</div>}
+
+      {!loading && !error && listings.length > 0 && (
+        <div className="browse-results-header">
+          <span className="results-count">{t("browse.resultsCount", { count: listings.length })}</span>
+          <div className="field sort-field">
+            <label htmlFor="sort">{t("browse.sortLabel")}</label>
+            <select id="sort" value={filters.sort} onChange={(e) => updateFilter("sort", e.target.value)}>
+              <option value="newest">{t("browse.sortNewest")}</option>
+              <option value="popular">{t("browse.sortPopular")}</option>
+              <option value="az">{t("browse.sortAZ")}</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="center-loading">
