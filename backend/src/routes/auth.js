@@ -6,6 +6,7 @@ const config = require('../config');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const adminAuth = require('../services/adminAuth');
+const passwordReset = require('../services/passwordReset');
 
 const router = express.Router();
 const BCRYPT_ROUNDS = 12;
@@ -79,6 +80,33 @@ router.post(
       throw new ApiError(401, 'Invalid email or password');
     }
 
+    res.json({ user: publicUser(user), token: signToken(user) });
+  })
+);
+
+// Always responds the same way regardless of whether `email` matched a
+// real account, so this can't be used to test whether an email is registered.
+router.post(
+  '/forgot-password',
+  asyncHandler(async (req, res) => {
+    const { email } = req.body || {};
+    if (!email) throw new ApiError(400, 'email is required');
+
+    await passwordReset.requestReset(email);
+    res.json({ message: 'If that email is on an account, a reset link has been sent.' });
+  })
+);
+
+// Exchanges the token from that email for a new password, then signs the
+// user in immediately — matching /register's own "create it and you're
+// logged in" behavior rather than sending them back to a login form.
+router.post(
+  '/reset-password',
+  asyncHandler(async (req, res) => {
+    const { token, newPassword } = req.body || {};
+    if (!token || !newPassword) throw new ApiError(400, 'token and newPassword are required');
+
+    const user = await passwordReset.resetPassword(token, newPassword);
     res.json({ user: publicUser(user), token: signToken(user) });
   })
 );

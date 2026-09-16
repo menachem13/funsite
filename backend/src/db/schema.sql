@@ -9,6 +9,24 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Forgot-password reset links for owner/renter accounts (admin has no
+-- password — see admin_otp_codes below). token_hash is a plain SHA-256
+-- digest, not bcrypt: the token itself is a 32-byte random value, so unlike
+-- a short OTP or a user's own password, brute-forcing the hash isn't a
+-- realistic concern, and a deterministic hash is what lets a reset link
+-- carry only the token and still be looked up directly, with no separate
+-- identifier (email, user id) needed alongside it.
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  consumed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON password_reset_tokens(user_id);
+
 -- One-time login codes for the single fixed admin account (env-configured
 -- ADMIN_USERNAME/ADMIN_OTP_EMAILS — there is no admin self-registration).
 -- Global, not per-user: only one admin identity exists.

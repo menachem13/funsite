@@ -54,6 +54,23 @@
   color: #fff;
 }
 
+.field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-label-row label {
+  margin-bottom: 0;
+}
+
+.forgot-password-link {
+  font-size: 0.82rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
 .auth-footer-link {
   text-align: center;
   font-size: 0.88rem;
