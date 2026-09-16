@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
+import { listingCompletenessCount } from "../../utils/listingCompleteness";
 import "./Dashboard.css";
 
 export default function DashboardHome() {
@@ -99,41 +100,54 @@ export default function DashboardHome() {
                 <th>{t("dashboard.colMessages")}</th>
                 <th>{t("dashboard.colFeatured")}</th>
                 <th>{t("dashboard.colExpires")}</th>
+                <th>{t("dashboard.colCompleteness")}</th>
                 <th aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
-              {listings.map((l) => (
-                <tr key={l.id}>
-                  <td>
-                    <Link to={`/dashboard/${l.id}/edit`} className="listing-name-link">
-                      {l.title}
-                    </Link>
-                  </td>
-                  <td>
-                    <span className={`badge badge-status-${l.status}`}>{l.status}</span>
-                  </td>
-                  <td>{l.view_count}</td>
-                  <td>
-                    {l.message_count}
-                    {l.unread_message_count > 0 && <span className="unread-dot" title="Unread messages" />}
-                  </td>
-                  <td>{l.featured_count}</td>
-                  <td>{l.subscription_expires_at ? new Date(l.subscription_expires_at).toLocaleDateString() : "—"}</td>
-                  <td className="row-actions">
-                    <Link className="btn btn-secondary btn-sm" to={`/dashboard/${l.id}/edit`}>
-                      {t("dashboard.manage")}
-                    </Link>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(l.id, l.title)}
-                      disabled={deletingId === l.id}
-                    >
-                      {t("dashboard.delete")}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {listings.map((l) => {
+                const { done, total } = listingCompletenessCount(l);
+                return (
+                  <tr key={l.id}>
+                    <td>
+                      <Link to={`/dashboard/${l.id}/edit`} className="listing-name-link">
+                        {l.title}
+                      </Link>
+                    </td>
+                    <td>
+                      <span className={`badge badge-status-${l.status}`}>{l.status}</span>
+                    </td>
+                    <td>{l.view_count}</td>
+                    <td>
+                      {l.message_count}
+                      {l.unread_message_count > 0 && <span className="unread-dot" title="Unread messages" />}
+                    </td>
+                    <td>{l.featured_count}</td>
+                    <td>{l.subscription_expires_at ? new Date(l.subscription_expires_at).toLocaleDateString() : "—"}</td>
+                    <td>
+                      <Link
+                        to={`/dashboard/${l.id}/edit`}
+                        className={`badge ${done === total ? "badge-status-active" : "badge-status-inactive"}`}
+                        title={t("dashboard.completenessCount", { done, total })}
+                      >
+                        {done}/{total}
+                      </Link>
+                    </td>
+                    <td className="row-actions">
+                      <Link className="btn btn-secondary btn-sm" to={`/dashboard/${l.id}/edit`}>
+                        {t("dashboard.manage")}
+                      </Link>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(l.id, l.title)}
+                        disabled={deletingId === l.id}
+                      >
+                        {t("dashboard.delete")}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

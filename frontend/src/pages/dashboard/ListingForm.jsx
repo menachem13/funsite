@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError, assetUrl, getToken, API_URL } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
+import { listingCompletenessChecklist } from "../../utils/listingCompleteness";
 import "./Dashboard.css";
 
 const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
@@ -259,11 +260,38 @@ export default function ListingForm() {
 
       {isEdit && (
         <>
+          <CompletenessChecklist listing={listing} media={media} />
           <MediaManager listingId={id} media={media} onChange={setMedia} />
           <PaymentPanel listing={listing} onListingChange={setListing} />
         </>
       )}
     </div>
+  );
+}
+
+function CompletenessChecklist({ listing, media }) {
+  const { t } = useLanguage();
+  if (!listing) return null;
+
+  const checklist = listingCompletenessChecklist({ ...listing, media_count: media.length });
+  const done = checklist.filter((c) => c.done).length;
+
+  return (
+    <section className="card dashboard-section">
+      <h2>{t("dashboard.completenessTitle")}</h2>
+      <p>{t("dashboard.completenessSubtitle")}</p>
+      <p className="field-hint">{t("dashboard.completenessCount", { done, total: checklist.length })}</p>
+      <ul className="completeness-list">
+        {checklist.map((item) => (
+          <li key={item.key} className={item.done ? "done" : ""}>
+            <span className="completeness-mark" aria-hidden="true">
+              {item.done ? "✓" : ""}
+            </span>
+            {t(item.labelKey)}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

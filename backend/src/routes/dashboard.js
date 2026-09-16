@@ -16,6 +16,7 @@ router.get(
          l.*,
          COALESCE(msg.count, 0)::int AS message_count,
          COALESCE(unread.count, 0)::int AS unread_message_count,
+         COALESCE(media.count, 0)::int AS media_count,
          COALESCE(views14.data, '[]'::json) AS daily_views
        FROM listings l
        LEFT JOIN LATERAL (
@@ -28,6 +29,9 @@ router.get(
          JOIN threads t ON t.id = m.thread_id
          WHERE t.listing_id = l.id AND m.sender_id != l.owner_id AND m.read_at IS NULL
        ) unread ON true
+       LEFT JOIN LATERAL (
+         SELECT COUNT(*) AS count FROM listing_media WHERE listing_id = l.id
+       ) media ON true
        LEFT JOIN LATERAL (
          SELECT json_agg(row_to_json(d) ORDER BY d.day) AS data
          FROM (

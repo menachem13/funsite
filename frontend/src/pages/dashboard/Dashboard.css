@@ -77,6 +77,44 @@
   margin-top: 8px;
 }
 
+.completeness-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px 16px;
+}
+
+.completeness-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-faint);
+}
+
+.completeness-list li.done {
+  color: var(--ink);
+}
+
+.completeness-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.completeness-list li.done .completeness-mark {
+  background: var(--success-bg);
+  border-color: transparent;
+  color: #0f8f70;
+}
+
 .trial-panel {
   background: var(--bg);
   border-radius: var(--radius-sm);
