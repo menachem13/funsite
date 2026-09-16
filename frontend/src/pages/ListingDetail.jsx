@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api, ApiError, assetUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -27,10 +27,29 @@ function withName(template, name) {
   );
 }
 
+// Composes a starting message from whatever discovery context (event type,
+// group size, location) the customer actually brought with them from search —
+// never inventing fields that weren't provided. Returns "" when none apply,
+// so the normal empty/placeholder experience is unchanged for a direct visit.
+function buildPrefillMessage(t, { eventType, groupSize, location }) {
+  if (!eventType && !groupSize && !location) return "";
+
+  const eventLabel = eventType ? t(`eventTypes.${eventType}`).toLowerCase() : "";
+  let sentence = eventLabel
+    ? t("listingDetail.prefillIntroWithEvent", { eventType: eventLabel })
+    : t("listingDetail.prefillIntroGeneric");
+  if (groupSize) sentence += t("listingDetail.prefillGroupSize", { count: groupSize });
+  if (location) sentence += t("listingDetail.prefillLocation", { location });
+  sentence += t("listingDetail.prefillClosing");
+
+  return `${t("listingDetail.prefillGreeting")} ${sentence}`;
+}
+
 export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
 
   const [listing, setListing] = useState(null);
   const [media, setMedia] = useState([]);
@@ -38,10 +57,18 @@ export default function ListingDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [messageBody, setMessageBody] = useState("");
+  const [messageBody, setMessageBody] = useState(() =>
+    buildPrefillMessage(t, {
+      eventType: searchParams.get("eventType") || "",
+      groupSize: searchParams.get("groupSize") || "",
+      location: searchParams.get("location") || "",
+    })
+  );
+  const [wasPrefilled, setWasPrefilled] = useState(() => messageBody !== "");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState("");
+  const prefilledForId = useRef(id);
 
   useDocumentTitle(listing?.title || t("browse.title"));
 
@@ -57,6 +84,24 @@ export default function ListingDetail() {
       .catch(() => setError(t("listingDetail.notFound")))
       .finally(() => setLoading(false));
   }, [id, t]);
+
+  // Re-derive the pre-fill only when navigating to a different listing (the
+  // lazy state above already handles the initial one). This keeps an
+  // in-progress edit from being overwritten by an unrelated re-render, such
+  // as a language toggle.
+  useEffect(() => {
+    if (prefilledForId.current === id) return;
+    prefilledForId.current = id;
+    const prefill = buildPrefillMessage(t, {
+      eventType: searchParams.get("eventType") || "",
+      groupSize: searchParams.get("groupSize") || "",
+      location: searchParams.get("location") || "",
+    });
+    setMessageBody(prefill);
+    setWasPrefilled(prefill !== "");
+    setSent(false);
+    setSendError("");
+  }, [id, searchParams, t]);
 
   async function handleSendMessage(e) {
     e.preventDefault();
@@ -240,6 +285,7 @@ export default function ListingDetail() {
                     value={messageBody}
                     onChange={(e) => setMessageBody(e.target.value)}
                   />
+                  {wasPrefilled && <p className="field-hint">{t("listingDetail.prefillHint")}</p>}
                 </div>
                 {sendError && <div className="alert alert-error">{sendError}</div>}
                 <button className="btn btn-primary btn-block" type="submit" disabled={sending}>

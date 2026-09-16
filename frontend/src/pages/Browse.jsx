@@ -243,7 +243,17 @@ export default function Browse() {
       ) : (
         <div className="listing-grid">
           {listings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} cover={listing.cover} featured={featured?.id === listing.id} />
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              cover={listing.cover}
+              featured={featured?.id === listing.id}
+              discoveryContext={{
+                eventType: filters.eventType,
+                groupSize: filters.groupSize,
+                location: filters.location,
+              }}
+            />
           ))}
         </div>
       )}

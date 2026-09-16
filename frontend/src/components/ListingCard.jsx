@@ -24,13 +24,30 @@ function withName(template, name) {
   );
 }
 
-export default function ListingCard({ listing, featured = false, cover }) {
+// Carries the customer's discovery context (event type, group size, location)
+// from a search/filter result forward to the listing detail page, so it can
+// pre-fill the contact message without the customer repeating themselves.
+// Only fields the customer actually provided are included — never invented.
+function discoveryContextQuery(discoveryContext) {
+  if (!discoveryContext) return "";
+  const params = new URLSearchParams();
+  if (discoveryContext.eventType) params.set("eventType", discoveryContext.eventType);
+  if (discoveryContext.groupSize) params.set("groupSize", discoveryContext.groupSize);
+  if (discoveryContext.location) params.set("location", discoveryContext.location);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+export default function ListingCard({ listing, featured = false, cover, discoveryContext }) {
   const { t } = useLanguage();
   const age = ageLabel(listing.audience_age_min, listing.audience_age_max, t);
   const eventTypes = listing.event_types || [];
 
   return (
-    <Link to={`/listings/${listing.id}`} className="listing-card card card-hover">
+    <Link
+      to={`/listings/${listing.id}${discoveryContextQuery(discoveryContext)}`}
+      className="listing-card card card-hover"
+    >
       <div className="listing-card-media">
         {featured && <span className="badge badge-featured">{t("listingCard.featuredToday")}</span>}
         {cover ? (
