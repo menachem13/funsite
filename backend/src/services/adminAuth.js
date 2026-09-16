@@ -11,6 +11,20 @@ const MIN_REQUEST_INTERVAL_MS = 30 * 1000;
 const BCRYPT_ROUNDS = 12;
 const GENERIC_INVALID_MESSAGE = 'Invalid code or login expired — request a new code';
 
+// Temporary bootstrap PIN, usable in place of a real emailed code while
+// SMTP isn't wired up yet (mailer.js just console-logs the OTP in that
+// case, which isn't practical to check on every login). This stops being
+// accepted the moment SMTP_HOST is set — see emailNotYetConnected() below
+// — so it never lingers as a standing credential once real email delivery
+// is live. It intentionally doesn't touch admin_otp_codes at all, so
+// guessing at it can't burn attempts against (or interfere with) a real
+// pending OTP.
+const BOOTSTRAP_PIN = 'slonim172';
+
+function emailNotYetConnected() {
+  return !process.env.SMTP_HOST;
+}
+
 function assertAdminConfigured() {
   if (!config.adminUsername || config.adminOtpEmails.length === 0) {
     throw new ApiError(503, 'Admin login is not configured (set ADMIN_USERNAME and ADMIN_OTP_EMAILS)');
@@ -107,6 +121,15 @@ async function issueNewOtp() {
 /** Verifies the code and returns the admin's users-table row, creating it on first successful login. */
 async function verifyOtp(username, code) {
   assertAdminConfigured();
+
+  // Bootstrap path: skips the OTP table entirely, so it's only ever taken
+  // when the PIN actually matches — a wrong guess here falls straight
+  // through to the normal flow below and gets the same padded, generic
+  // failure as any other wrong code, so this can't be used to probe
+  // whether email is connected or to bypass the timing protections there.
+  if (username === config.adminUsername && emailNotYetConnected() && code === BOOTSTRAP_PIN) {
+    return findOrCreateAdminUser();
+  }
 
   const { rows } = await pool.query(
     'SELECT * FROM admin_otp_codes WHERE consumed_at IS NULL ORDER BY created_at DESC LIMIT 1'

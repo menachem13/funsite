@@ -86,13 +86,11 @@ export default function AdminLogin() {
               <input
                 id="code"
                 type="text"
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
+                autoComplete="one-time-code"
                 required
                 autoFocus
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setCode(e.target.value.trim())}
               />
             </div>
             <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
