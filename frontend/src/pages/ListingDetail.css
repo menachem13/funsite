@@ -115,6 +115,15 @@
   gap: 6px;
 }
 
+.detail-request {
+  margin-top: 8px;
+}
+
+.request-heading {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+}
+
 .detail-contact {
   margin-top: 24px;
 }

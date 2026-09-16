@@ -8,6 +8,7 @@ import ConfettiBurst from "../components/ConfettiBurst";
 import Fireworks from "../components/Fireworks";
 import ListingCard from "../components/ListingCard";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { todayInputValue } from "../utils/date";
 import "./Home.css";
 
 const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6", "faq7", "faq8", "faq9"];
@@ -282,6 +283,7 @@ function FindAttractionPanel() {
   const [groupSizeBucket, setGroupSizeBucket] = useState("");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
+  const [eventDate, setEventDate] = useState("");
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -291,6 +293,7 @@ function FindAttractionPanel() {
     if (bucket?.groupSize) params.set("groupSize", bucket.groupSize);
     if (category) params.set("category", category);
     if (location.trim()) params.set("location", location.trim());
+    if (eventDate) params.set("eventDate", eventDate);
     const qs = params.toString();
     navigate(`/browse${qs ? `?${qs}` : ""}`);
   }
@@ -352,6 +355,20 @@ function FindAttractionPanel() {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
+        </div>
+      </div>
+
+      <div className="find-panel-row">
+        <div className="find-panel-select">
+          <label htmlFor="find-date">{t("home.findPanel.eventDateLabel")}</label>
+          <input
+            id="find-date"
+            type="date"
+            min={todayInputValue()}
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+          />
+          <p className="field-hint">{t("home.findPanel.eventDateHint")}</p>
         </div>
       </div>
 

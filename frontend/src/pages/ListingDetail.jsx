@@ -4,6 +4,7 @@ import { api, ApiError, assetUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { formatEventDate, isValidFutureDate } from "../utils/date";
 import "./ListingDetail.css";
 
 function ageLabel(min, max, t) {
@@ -28,11 +29,13 @@ function withName(template, name) {
 }
 
 // Composes a starting message from whatever discovery context (event type,
-// group size, location) the customer actually brought with them from search —
-// never inventing fields that weren't provided. Returns "" when none apply,
-// so the normal empty/placeholder experience is unchanged for a direct visit.
-function buildPrefillMessage(t, { eventType, groupSize, location }) {
-  if (!eventType && !groupSize && !location) return "";
+// group size, location, event date) the customer actually brought with them
+// from search — never inventing fields that weren't provided. Returns "" when
+// none apply, so the normal empty/placeholder experience is unchanged for a
+// direct visit. A past or malformed date is treated the same as no date.
+function buildPrefillMessage(t, language, { eventType, groupSize, location, eventDate }) {
+  const dateLabel = isValidFutureDate(eventDate) ? formatEventDate(eventDate, language) : "";
+  if (!eventType && !groupSize && !location && !dateLabel) return "";
 
   const eventLabel = eventType ? t(`eventTypes.${eventType}`).toLowerCase() : "";
   let sentence = eventLabel
@@ -40,15 +43,25 @@ function buildPrefillMessage(t, { eventType, groupSize, location }) {
     : t("listingDetail.prefillIntroGeneric");
   if (groupSize) sentence += t("listingDetail.prefillGroupSize", { count: groupSize });
   if (location) sentence += t("listingDetail.prefillLocation", { location });
+  if (dateLabel) sentence += t("listingDetail.prefillDate", { date: dateLabel });
   sentence += t("listingDetail.prefillClosing");
 
   return `${t("listingDetail.prefillGreeting")} ${sentence}`;
 }
 
+function readDiscoveryContext(searchParams) {
+  return {
+    eventType: searchParams.get("eventType") || "",
+    groupSize: searchParams.get("groupSize") || "",
+    location: searchParams.get("location") || "",
+    eventDate: searchParams.get("eventDate") || "",
+  };
+}
+
 export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchParams] = useSearchParams();
 
   const [listing, setListing] = useState(null);
@@ -58,11 +71,7 @@ export default function ListingDetail() {
   const [error, setError] = useState("");
 
   const [messageBody, setMessageBody] = useState(() =>
-    buildPrefillMessage(t, {
-      eventType: searchParams.get("eventType") || "",
-      groupSize: searchParams.get("groupSize") || "",
-      location: searchParams.get("location") || "",
-    })
+    buildPrefillMessage(t, language, readDiscoveryContext(searchParams))
   );
   const [wasPrefilled, setWasPrefilled] = useState(() => messageBody !== "");
   const [sending, setSending] = useState(false);
@@ -92,16 +101,12 @@ export default function ListingDetail() {
   useEffect(() => {
     if (prefilledForId.current === id) return;
     prefilledForId.current = id;
-    const prefill = buildPrefillMessage(t, {
-      eventType: searchParams.get("eventType") || "",
-      groupSize: searchParams.get("groupSize") || "",
-      location: searchParams.get("location") || "",
-    });
+    const prefill = buildPrefillMessage(t, language, readDiscoveryContext(searchParams));
     setMessageBody(prefill);
     setWasPrefilled(prefill !== "");
     setSent(false);
     setSendError("");
-  }, [id, searchParams, t]);
+  }, [id, searchParams, t, language]);
 
   async function handleSendMessage(e) {
     e.preventDefault();
@@ -141,6 +146,14 @@ export default function ListingDetail() {
   const age = ageLabel(listing.audience_age_min, listing.audience_age_max, t);
   const isOwnListing = user?.role === "owner" && user.id === listing.owner_id;
   const current = media[activeMedia];
+
+  const discoveryContext = readDiscoveryContext(searchParams);
+  const requestDateLabel = isValidFutureDate(discoveryContext.eventDate)
+    ? formatEventDate(discoveryContext.eventDate, language)
+    : "";
+  const hasRequestContext =
+    !isOwnListing &&
+    (discoveryContext.eventType || discoveryContext.groupSize || discoveryContext.location || requestDateLabel);
 
   return (
     <div className="listing-detail container">
@@ -241,6 +254,38 @@ export default function ListingDetail() {
             </span>
             {listing.attendant_required && <span className="tag">{t("listingDetail.attendantIncluded")}</span>}
           </div>
+
+          {hasRequestContext && (
+            <div className="detail-request">
+              <h2 className="request-heading">{t("listingDetail.requestHeading")}</h2>
+              <dl className="detail-facts">
+                {discoveryContext.eventType && (
+                  <div className="detail-fact">
+                    <dt>{t("listingDetail.requestEventLabel")}</dt>
+                    <dd>{t(`eventTypes.${discoveryContext.eventType}`)}</dd>
+                  </div>
+                )}
+                {discoveryContext.groupSize && (
+                  <div className="detail-fact">
+                    <dt>{t("listingDetail.requestGroupLabel")}</dt>
+                    <dd>{discoveryContext.groupSize}+</dd>
+                  </div>
+                )}
+                {discoveryContext.location && (
+                  <div className="detail-fact">
+                    <dt>{t("listingDetail.locationLabel")}</dt>
+                    <dd>{discoveryContext.location}</dd>
+                  </div>
+                )}
+                {requestDateLabel && (
+                  <div className="detail-fact">
+                    <dt>{t("listingDetail.requestDateLabel")}</dt>
+                    <dd>{requestDateLabel}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          )}
 
           <div className="detail-contact card">
             {!isOwnListing && (

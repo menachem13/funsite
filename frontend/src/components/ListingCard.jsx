@@ -24,16 +24,18 @@ function withName(template, name) {
   );
 }
 
-// Carries the customer's discovery context (event type, group size, location)
-// from a search/filter result forward to the listing detail page, so it can
-// pre-fill the contact message without the customer repeating themselves.
-// Only fields the customer actually provided are included — never invented.
+// Carries the customer's discovery context (event type, group size, location,
+// event date) from a search/filter result forward to the listing detail
+// page, so it can pre-fill the contact message without the customer
+// repeating themselves. Only fields the customer actually provided are
+// included — never invented.
 function discoveryContextQuery(discoveryContext) {
   if (!discoveryContext) return "";
   const params = new URLSearchParams();
   if (discoveryContext.eventType) params.set("eventType", discoveryContext.eventType);
   if (discoveryContext.groupSize) params.set("groupSize", discoveryContext.groupSize);
   if (discoveryContext.location) params.set("location", discoveryContext.location);
+  if (discoveryContext.eventDate) params.set("eventDate", discoveryContext.eventDate);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }

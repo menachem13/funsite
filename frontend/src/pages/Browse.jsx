@@ -4,6 +4,7 @@ import ListingCard from "../components/ListingCard";
 import { api } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { todayInputValue } from "../utils/date";
 import "./Browse.css";
 
 const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
@@ -19,6 +20,7 @@ const DEFAULT_FILTERS = {
   q: "",
   eventType: "",
   groupSize: "",
+  eventDate: "",
 };
 
 export default function Browse() {
@@ -35,6 +37,7 @@ export default function Browse() {
     eventType: searchParams.get("eventType") || "",
     location: searchParams.get("location") || "",
     groupSize: searchParams.get("groupSize") || "",
+    eventDate: searchParams.get("eventDate") || "",
   }));
   // Open "more filters" by default if a link (e.g. the homepage find-an-attraction
   // panel) arrived with one of those filters already set, so the visitor can see
@@ -57,8 +60,12 @@ export default function Browse() {
   }, []);
 
   useEffect(() => {
+    // eventDate is discovery/contact context for the customer's message, not
+    // a listing filter — there's no provider availability data to filter on,
+    // so it's deliberately left out of the search request.
+    const { eventDate: _eventDate, ...filterParams } = filters;
     const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
+    Object.entries(filterParams).forEach(([key, value]) => {
       if (value !== "") params.set(key, value);
     });
 
@@ -137,6 +144,18 @@ export default function Browse() {
             value={filters.location}
             onChange={(e) => updateFilter("location", e.target.value)}
           />
+        </div>
+
+        <div className="field">
+          <label htmlFor="eventDate">{t("browse.eventDateLabel")}</label>
+          <input
+            id="eventDate"
+            type="date"
+            min={todayInputValue()}
+            value={filters.eventDate}
+            onChange={(e) => updateFilter("eventDate", e.target.value)}
+          />
+          <p className="field-hint">{t("browse.eventDateHint")}</p>
         </div>
 
         <button
@@ -252,6 +271,7 @@ export default function Browse() {
                 eventType: filters.eventType,
                 groupSize: filters.groupSize,
                 location: filters.location,
+                eventDate: filters.eventDate,
               }}
             />
           ))}
