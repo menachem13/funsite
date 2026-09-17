@@ -5,9 +5,9 @@ import { api } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { todayInputValue } from "../utils/date";
+import { CATEGORY_VALUES } from "../constants/categories";
 import "./Browse.css";
 
-const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
 const EVENT_TYPES = ["camp", "school", "community", "family", "large", "other"];
 
 const DEFAULT_FILTERS = {
@@ -117,7 +117,7 @@ export default function Browse() {
           <label htmlFor="category">{t("browse.category")}</label>
           <select id="category" value={filters.category} onChange={(e) => updateFilter("category", e.target.value)}>
             <option value="">{t("browse.allCategories")}</option>
-            {CATEGORIES.map((c) => (
+            {CATEGORY_VALUES.map((c) => (
               <option key={c} value={c}>
                 {t(`browse.categories.${c}`)}
               </option>

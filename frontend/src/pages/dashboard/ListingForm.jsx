@@ -3,14 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError, assetUrl, getToken, API_URL } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
 import { listingCompletenessChecklist } from "../../utils/listingCompleteness";
+import { CATEGORY_VALUES } from "../../constants/categories";
 import "./Dashboard.css";
 
-const CATEGORIES = ["inflatable", "photo booth", "carousel", "dunk tank", "face painting", "game trailer"];
 const EVENT_TYPES = ["camp", "school", "community", "family", "large", "other"];
 const EMPTY_FORM = {
   title: "",
   description: "",
-  category: CATEGORIES[0],
+  category: CATEGORY_VALUES[0],
   location: "",
   audienceAgeMin: "",
   audienceAgeMax: "",
@@ -48,7 +48,7 @@ export default function ListingForm() {
         setForm({
           title: d.listing.title || "",
           description: d.listing.description || "",
-          category: d.listing.category || CATEGORIES[0],
+          category: d.listing.category || CATEGORY_VALUES[0],
           location: d.listing.location || "",
           audienceAgeMin: d.listing.audience_age_min ?? "",
           audienceAgeMax: d.listing.audience_age_max ?? "",
@@ -153,9 +153,9 @@ export default function ListingForm() {
           <div className="field">
             <label htmlFor="category">{t("dashboard.formCategory")}</label>
             <select id="category" value={form.category} onChange={(e) => updateField("category", e.target.value)}>
-              {CATEGORIES.map((c) => (
+              {CATEGORY_VALUES.map((c) => (
                 <option key={c} value={c}>
-                  {t(`dashboard.categories.${c}`)}
+                  {t(`browse.categories.${c}`)}
                 </option>
               ))}
             </select>

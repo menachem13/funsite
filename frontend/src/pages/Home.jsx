@@ -9,6 +9,7 @@ import Fireworks from "../components/Fireworks";
 import ListingCard from "../components/ListingCard";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { todayInputValue } from "../utils/date";
+import { CATEGORIES as CATEGORY_CARDS } from "../constants/categories";
 import "./Home.css";
 
 const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6", "faq7", "faq8", "faq9"];
@@ -26,17 +27,6 @@ const GROUP_SIZE_BUCKETS = [
   { key: "size100to250", groupSize: "100" },
   { key: "size250to500", groupSize: "250" },
   { key: "size500plus", groupSize: "500" },
-];
-
-// (icon, backend category value) pairs — the value is what /browse?category=
-// actually filters on, so these must stay in sync with Browse.jsx/ListingForm.jsx.
-const CATEGORY_CARDS = [
-  { icon: "🏰", value: "inflatable" },
-  { icon: "📸", value: "photo booth" },
-  { icon: "🎠", value: "carousel" },
-  { icon: "💦", value: "dunk tank" },
-  { icon: "🎨", value: "face painting" },
-  { icon: "🎮", value: "game trailer" },
 ];
 
 export default function Home() {
