@@ -13,6 +13,8 @@ const EVENT_TYPES = ["camp", "school", "community", "family", "large", "other"];
 const DEFAULT_FILTERS = {
   category: "",
   location: "",
+  city: "",
+  state: "",
   minAge: "",
   maxAge: "",
   gender: "",
@@ -37,6 +39,8 @@ export default function Browse() {
     q: searchParams.get("q") || "",
     eventType: searchParams.get("eventType") || "",
     location: searchParams.get("location") || "",
+    city: searchParams.get("city") || "",
+    state: searchParams.get("state") || "",
     groupSize: searchParams.get("groupSize") || "",
     eventDate: searchParams.get("eventDate") || "",
     sort: searchParams.get("sort") || "newest",
@@ -94,6 +98,12 @@ export default function Browse() {
     setSearchInput("");
   }
 
+  // For the discovery-context passthrough (see ListingCard/ListingDetail):
+  // a single display string, same as the old one-field location filter
+  // produced. Prefers the new structured city/state fields; falls back to
+  // the legacy ?location= value for links that still arrive that way.
+  const discoveryLocation = [filters.city, filters.state].filter(Boolean).join(", ") || filters.location;
+
   return (
     <div className="browse-page container">
       <div className="browse-header">
@@ -138,13 +148,24 @@ export default function Browse() {
         </div>
 
         <div className="field">
-          <label htmlFor="location">{t("browse.location")}</label>
+          <label htmlFor="city">{t("browse.city")}</label>
           <input
-            id="location"
+            id="city"
             type="text"
-            placeholder={t("browse.locationPlaceholder")}
-            value={filters.location}
-            onChange={(e) => updateFilter("location", e.target.value)}
+            placeholder={t("browse.cityPlaceholder")}
+            value={filters.city}
+            onChange={(e) => updateFilter("city", e.target.value)}
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="state">{t("browse.state")}</label>
+          <input
+            id="state"
+            type="text"
+            placeholder={t("browse.statePlaceholder")}
+            value={filters.state}
+            onChange={(e) => updateFilter("state", e.target.value)}
           />
         </div>
 
@@ -286,7 +307,7 @@ export default function Browse() {
               discoveryContext={{
                 eventType: filters.eventType,
                 groupSize: filters.groupSize,
-                location: filters.location,
+                location: discoveryLocation,
                 eventDate: filters.eventDate,
               }}
             />

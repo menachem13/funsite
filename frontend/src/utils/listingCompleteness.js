@@ -11,7 +11,7 @@
 const CHECKS = [
   { key: "description", labelKey: "dashboard.formDescription", test: (l) => !!(l.description && l.description.trim()) },
   { key: "photos", labelKey: "dashboard.photosVideoTitle", test: (l) => (l.media_count ?? 0) > 0 },
-  { key: "location", labelKey: "dashboard.formLocation", test: (l) => !!(l.location && l.location.trim()) },
+  { key: "location", labelKey: "dashboard.formCity", test: (l) => !!(l.location && l.location.trim()) },
   { key: "capacity", labelKey: "dashboard.formCapacity", test: (l) => l.capacity != null },
   { key: "eventTypes", labelKey: "dashboard.formEventTypes", test: (l) => Array.isArray(l.event_types) && l.event_types.length > 0 },
   { key: "ageRange", labelKey: "dashboard.completenessAgeRange", test: (l) => l.audience_age_min != null || l.audience_age_max != null },

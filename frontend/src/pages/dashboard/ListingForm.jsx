@@ -11,7 +11,8 @@ const EMPTY_FORM = {
   title: "",
   description: "",
   category: CATEGORY_VALUES[0],
-  location: "",
+  locationCity: "",
+  locationState: "",
   audienceAgeMin: "",
   audienceAgeMax: "",
   audienceGender: "all",
@@ -22,6 +23,19 @@ const EMPTY_FORM = {
 
 function paymentStorageKey(listingId) {
   return `funsite_payment_${listingId}`;
+}
+
+// A listing from before structured location existed (or one whose text
+// genuinely couldn't be split — see the migration in schema.sql) has
+// location_city/location_state both null but still has its original
+// combined `location` text. Rather than showing blank fields — which,
+// left untouched and saved, would silently blank out that text — the
+// City field starts from it, so an untouched save round-trips to the same
+// displayed value, and the owner can freely split it further if they want.
+function initialCityValue(listing) {
+  if (listing.location_city) return listing.location_city;
+  if (!listing.location_state && listing.location) return listing.location;
+  return "";
 }
 
 export default function ListingForm() {
@@ -49,7 +63,8 @@ export default function ListingForm() {
           title: d.listing.title || "",
           description: d.listing.description || "",
           category: d.listing.category || CATEGORY_VALUES[0],
-          location: d.listing.location || "",
+          locationCity: initialCityValue(d.listing),
+          locationState: d.listing.location_state || "",
           audienceAgeMin: d.listing.audience_age_min ?? "",
           audienceAgeMax: d.listing.audience_age_max ?? "",
           audienceGender: d.listing.audience_gender || "all",
@@ -85,7 +100,8 @@ export default function ListingForm() {
       title: form.title.trim(),
       description: form.description.trim() || null,
       category: form.category,
-      location: form.location.trim() || null,
+      locationCity: form.locationCity.trim() || null,
+      locationState: form.locationState.trim() || null,
       audienceAgeMin: form.audienceAgeMin === "" ? null : Number(form.audienceAgeMin),
       audienceAgeMax: form.audienceAgeMax === "" ? null : Number(form.audienceAgeMax),
       audienceGender: form.audienceGender,
@@ -161,13 +177,26 @@ export default function ListingForm() {
             </select>
           </div>
           <div className="field">
-            <label htmlFor="location">{t("dashboard.formLocation")}</label>
+            <label htmlFor="locationCity">{t("dashboard.formCity")}</label>
             <input
-              id="location"
+              id="locationCity"
               type="text"
-              placeholder={t("dashboard.formLocationPlaceholder")}
-              value={form.location}
-              onChange={(e) => updateField("location", e.target.value)}
+              placeholder={t("dashboard.formCityPlaceholder")}
+              value={form.locationCity}
+              onChange={(e) => updateField("locationCity", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="field">
+            <label htmlFor="locationState">{t("dashboard.formState")}</label>
+            <input
+              id="locationState"
+              type="text"
+              placeholder={t("dashboard.formStatePlaceholder")}
+              value={form.locationState}
+              onChange={(e) => updateField("locationState", e.target.value)}
             />
           </div>
         </div>

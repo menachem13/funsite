@@ -28,6 +28,15 @@ async function attachCovers(listings) {
   return listings.map((l) => ({ ...l, cover: byListingId.get(l.id) || null }));
 }
 
+// Structured location (city + state) is what's actually stored and filtered
+// on; `location` stays a plain "City, State" display string derived from
+// them, so every existing reader of listing.location (cards, detail page,
+// the discovery-context contact-message flow) keeps working unchanged.
+function combineLocation(city, state) {
+  const parts = [city, state].map((p) => (p || '').trim()).filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : null;
+}
+
 async function loadOwnedListing(listingId, ownerId) {
   const { rows } = await pool.query('SELECT * FROM listings WHERE id = $1', [listingId]);
   const listing = rows[0];
@@ -72,7 +81,8 @@ router.post(
       title,
       description,
       category,
-      location,
+      locationCity,
+      locationState,
       audienceAgeMin,
       audienceAgeMax,
       audienceGender,
@@ -87,17 +97,19 @@ router.post(
 
     const { rows } = await pool.query(
       `INSERT INTO listings
-         (owner_id, title, description, category, location,
+         (owner_id, title, description, category, location, location_city, location_state,
           audience_age_min, audience_age_max, audience_gender, attendant_required,
           capacity, event_types, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 'all'), COALESCE($9, false), $10, $11, 'inactive')
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10, 'all'), COALESCE($11, false), $12, $13, 'inactive')
        RETURNING *`,
       [
         req.user.id,
         title,
         description || null,
         category,
-        location || null,
+        combineLocation(locationCity, locationState),
+        locationCity?.trim() || null,
+        locationState?.trim() || null,
         audienceAgeMin ?? null,
         audienceAgeMax ?? null,
         audienceGender || null,
@@ -116,7 +128,8 @@ router.post(
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const { category, location, minAge, maxAge, gender, attendantRequired, q, eventType, groupSize, sort } = req.query;
+    const { category, location, city, state, minAge, maxAge, gender, attendantRequired, q, eventType, groupSize, sort } =
+      req.query;
 
     const conditions = [`status = 'active'`];
     const params = [];
@@ -125,9 +138,26 @@ router.get(
       params.push(category);
       conditions.push(`category = $${params.length}`);
     }
+    // Structured city/state filters match the new columns, but also fall
+    // back to the legacy combined `location` text — so a listing that
+    // predates this feature (location_city/state still NULL) stays
+    // findable exactly as it was before.
+    if (city) {
+      params.push(`%${city}%`);
+      conditions.push(`(location_city ILIKE $${params.length} OR location ILIKE $${params.length})`);
+    }
+    if (state) {
+      params.push(`%${state}%`);
+      conditions.push(`(location_state ILIKE $${params.length} OR location ILIKE $${params.length})`);
+    }
+    // Legacy single-field ?location= param (old bookmarked links, and the
+    // homepage's own simple "Where?" box) — broad match across all three
+    // location fields, matching its original substring-anywhere behavior.
     if (location) {
       params.push(`%${location}%`);
-      conditions.push(`location ILIKE $${params.length}`);
+      conditions.push(
+        `(location_city ILIKE $${params.length} OR location_state ILIKE $${params.length} OR location ILIKE $${params.length})`
+      );
     }
     if (minAge) {
       params.push(parseInt(minAge, 10));
@@ -246,13 +276,14 @@ router.put(
   requireRole('owner'),
   asyncHandler(async (req, res) => {
     const listingId = parseInt(req.params.id, 10);
-    await loadOwnedListing(listingId, req.user.id);
+    const existing = await loadOwnedListing(listingId, req.user.id);
 
     const {
       title,
       description,
       category,
-      location,
+      locationCity,
+      locationState,
       audienceAgeMin,
       audienceAgeMax,
       audienceGender,
@@ -261,26 +292,39 @@ router.put(
       eventTypes,
     } = req.body || {};
 
+    // Resolve city/state first, falling back to the listing's current values
+    // for whichever half wasn't included in this request — a save that
+    // doesn't touch location (or the frontend's owner-editing-title-only
+    // case) can never blank out an existing value. `location` is then
+    // recomputed from the resolved pair, same as on create.
+    const effectiveCity = locationCity !== undefined ? locationCity?.trim() || null : existing.location_city;
+    const effectiveState = locationState !== undefined ? locationState?.trim() || null : existing.location_state;
+    const nextLocation = combineLocation(effectiveCity, effectiveState);
+
     const { rows } = await pool.query(
       `UPDATE listings SET
          title = COALESCE($1, title),
          description = COALESCE($2, description),
          category = COALESCE($3, category),
-         location = COALESCE($4, location),
-         audience_age_min = COALESCE($5, audience_age_min),
-         audience_age_max = COALESCE($6, audience_age_max),
-         audience_gender = COALESCE($7, audience_gender),
-         attendant_required = COALESCE($8, attendant_required),
-         capacity = COALESCE($9, capacity),
-         event_types = COALESCE($10, event_types),
+         location = $4,
+         location_city = $5,
+         location_state = $6,
+         audience_age_min = COALESCE($7, audience_age_min),
+         audience_age_max = COALESCE($8, audience_age_max),
+         audience_gender = COALESCE($9, audience_gender),
+         attendant_required = COALESCE($10, attendant_required),
+         capacity = COALESCE($11, capacity),
+         event_types = COALESCE($12, event_types),
          updated_at = now()
-       WHERE id = $11
+       WHERE id = $13
        RETURNING *`,
       [
         title ?? null,
         description ?? null,
         category ?? null,
-        location ?? null,
+        nextLocation,
+        effectiveCity,
+        effectiveState,
         audienceAgeMin ?? null,
         audienceAgeMax ?? null,
         audienceGender ?? null,

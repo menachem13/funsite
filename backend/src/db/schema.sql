@@ -72,10 +72,32 @@ CREATE TABLE IF NOT EXISTS listings (
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS capacity INTEGER;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS event_types TEXT[];
 
+-- Structured location: `location` (the original free-text field) is never
+-- dropped or overwritten by this migration — it stays the backward-compatible
+-- display/search fallback for anything that predates or can't be parsed into
+-- the two columns below. New/edited listings populate all three together
+-- (see routes/listings.js), with `location` recomputed as "city, state".
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS location_city TEXT;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS location_state TEXT;
+
+-- One-time, idempotent backfill: only touches rows that (a) have never been
+-- split before (both columns still NULL) and (b) actually contain a comma,
+-- i.e. unambiguously look like "City, State". Anything else — no comma, or
+-- already split — is left untouched, never guessed at.
+UPDATE listings
+SET location_city = trim(split_part(location, ',', 1)),
+    location_state = trim(substring(location from position(',' in location) + 1))
+WHERE location_city IS NULL
+  AND location_state IS NULL
+  AND location IS NOT NULL
+  AND position(',' in location) > 0;
+
 CREATE INDEX IF NOT EXISTS idx_listings_owner ON listings(owner_id);
 CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
 CREATE INDEX IF NOT EXISTS idx_listings_category ON listings(category);
 CREATE INDEX IF NOT EXISTS idx_listings_event_types ON listings USING GIN (event_types);
+CREATE INDEX IF NOT EXISTS idx_listings_location_city ON listings(location_city);
+CREATE INDEX IF NOT EXISTS idx_listings_location_state ON listings(location_state);
 
 CREATE TABLE IF NOT EXISTS listing_media (
   id SERIAL PRIMARY KEY,
