@@ -62,9 +62,14 @@ export default function Navbar() {
           )}
 
           {user?.role === "renter" && (
-            <NavLink to="/inbox" onClick={() => setMenuOpen(false)}>
-              {t("nav.messages")}
-            </NavLink>
+            <>
+              <NavLink to="/saved" onClick={() => setMenuOpen(false)}>
+                {t("nav.saved")}
+              </NavLink>
+              <NavLink to="/inbox" onClick={() => setMenuOpen(false)}>
+                {t("nav.messages")}
+              </NavLink>
+            </>
           )}
 
           {user?.role === "admin" && (

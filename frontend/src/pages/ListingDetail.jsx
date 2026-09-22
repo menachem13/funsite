@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { formatEventDate, isValidFutureDate } from "../utils/date";
+import SaveButton from "../components/SaveButton";
 import "./ListingDetail.css";
 
 function ageLabel(min, max, t) {
@@ -198,10 +199,13 @@ export default function ListingDetail() {
         <div className="detail-info">
           <div className="detail-top">
             <h1>{listing.title}</h1>
-            <span className="live-view">
-              <span className="live-dot" aria-hidden="true" />
-              <span className="count">{listing.view_count}</span> {t("listingDetail.viewing")}
-            </span>
+            <div className="detail-top-actions">
+              <span className="live-view">
+                <span className="live-dot" aria-hidden="true" />
+                <span className="count">{listing.view_count}</span> {t("listingDetail.viewing")}
+              </span>
+              <SaveButton listing={listing} />
+            </div>
           </div>
 
           <p className="detail-meta">{t(`browse.categories.${listing.category}`)}</p>

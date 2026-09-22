@@ -4,29 +4,12 @@ const pool = require('../db/pool');
 const config = require('../config');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
+const attachCovers = require('../utils/attachCovers');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { saveListingMedia, mediaTypeFor } = require('../services/storage');
 
 const router = express.Router();
-
-// Attaches each listing's first-by-position media item as `cover` (or null),
-// via one batched query — avoids an N+1 query per card on list/search/
-// featured responses, which is how listing cards get real photos instead of
-// always falling back to the gradient placeholder.
-async function attachCovers(listings) {
-  if (listings.length === 0) return listings;
-  const ids = listings.map((l) => l.id);
-  const { rows: covers } = await pool.query(
-    `SELECT DISTINCT ON (listing_id) listing_id, url, type
-     FROM listing_media
-     WHERE listing_id = ANY($1)
-     ORDER BY listing_id, position ASC, id ASC`,
-    [ids]
-  );
-  const byListingId = new Map(covers.map((c) => [c.listing_id, c]));
-  return listings.map((l) => ({ ...l, cover: byListingId.get(l.id) || null }));
-}
 
 // Structured location (city + state) is what's actually stored and filtered
 // on; `location` stays a plain "City, State" display string derived from

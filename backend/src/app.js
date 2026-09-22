@@ -9,6 +9,7 @@ const threadRoutes = require('./routes/threads');
 const paymentRoutes = require('./routes/payments');
 const dashboardRoutes = require('./routes/dashboard');
 const adminRoutes = require('./routes/admin');
+const savedListingsRoutes = require('./routes/savedListings');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/threads', threadRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/owner', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/saved-listings', savedListingsRoutes);
 
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 app.use(errorHandler);

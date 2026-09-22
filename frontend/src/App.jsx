@@ -10,6 +10,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Browse from "./pages/Browse";
 import ListingDetail from "./pages/ListingDetail";
+import SavedListings from "./pages/SavedListings";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import ListingForm from "./pages/dashboard/ListingForm";
 import Inbox from "./pages/Inbox";
@@ -32,6 +33,14 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/browse" element={<Browse />} />
           <Route path="/listings/:id" element={<ListingDetail />} />
+          <Route
+            path="/saved"
+            element={
+              <ProtectedRoute roles={["renter"]}>
+                <SavedListings />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/dashboard"

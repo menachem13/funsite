@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { assetUrl } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
+import SaveButton from "./SaveButton";
 
 function ageLabel(min, max, t) {
   if (min == null && max == null) return null;
@@ -52,6 +53,7 @@ export default function ListingCard({ listing, featured = false, cover, discover
     >
       <div className="listing-card-media">
         {featured && <span className="badge badge-featured">{t("listingCard.featuredToday")}</span>}
+        <SaveButton listing={listing} />
         {cover ? (
           cover.type === "video" ? (
             <video src={assetUrl(cover.url)} muted playsInline />

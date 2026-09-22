@@ -110,6 +110,21 @@ CREATE TABLE IF NOT EXISTS listing_media (
 
 CREATE INDEX IF NOT EXISTS idx_listing_media_listing ON listing_media(listing_id);
 
+-- A renter's personal shortlist. ON DELETE CASCADE on both FKs: if the
+-- listing is deleted, the save simply disappears along with it (never a
+-- dangling reference); same if the account itself is ever deleted. The
+-- unique pair is what makes saving idempotent — see routes/savedListings.js.
+CREATE TABLE IF NOT EXISTS saved_listings (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, listing_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_saved_listings_user ON saved_listings(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_listings_listing ON saved_listings(listing_id);
+
 CREATE TABLE IF NOT EXISTS listing_views (
   id SERIAL PRIMARY KEY,
   listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
