@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, ApiError, assetUrl, getToken, API_URL } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
 import { listingCompletenessChecklist } from "../../utils/listingCompleteness";
@@ -382,9 +382,13 @@ function MediaManager({ listingId, media, onChange }) {
 
 function PaymentPanel({ listing, onListingChange }) {
   const { t } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [couponCode, setCouponCode] = useState("");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState("");
+  // Trial-in-progress state only — the ordinary paid checkout never lands
+  // here anymore, since the browser leaves entirely for Stripe's hosted
+  // page and only real Stripe (via the webhook) can ever mark it paid.
   const [pending, setPending] = useState(() => {
     try {
       const raw = listing && localStorage.getItem(paymentStorageKey(listing.id));
@@ -395,6 +399,7 @@ function PaymentPanel({ listing, onListingChange }) {
   });
   const [deferredStatus, setDeferredStatus] = useState(null);
   const [completing, setCompleting] = useState(false);
+  const [paymentNotice, setPaymentNotice] = useState(null);
 
   useEffect(() => {
     if (!listing) return;
@@ -414,6 +419,58 @@ function PaymentPanel({ listing, onListingChange }) {
       .catch(() => setDeferredStatus(null));
   }, [pending]);
 
+  // Owner's browser returning from Stripe's hosted checkout page. Strip the
+  // query param right away so a page refresh doesn't re-trigger this, then
+  // either show the "cancelled, no charge" notice or poll briefly for the
+  // webhook to land — Stripe calls it almost immediately, but not
+  // synchronously with this redirect, so the listing may not be active yet
+  // on the very first check.
+  useEffect(() => {
+    const paymentParam = searchParams.get("payment");
+    if (!paymentParam || !listing) return;
+
+    setSearchParams(
+      (sp) => {
+        sp.delete("payment");
+        return sp;
+      },
+      { replace: true }
+    );
+
+    if (paymentParam === "cancelled") {
+      setPaymentNotice("cancelled");
+      return;
+    }
+    if (paymentParam !== "success") return;
+
+    setPaymentNotice("pending");
+    let cancelled = false;
+    let attempts = 0;
+    const poll = async () => {
+      if (cancelled) return;
+      attempts += 1;
+      try {
+        const { listing: fresh } = await api.get(`/listings/${listing.id}`);
+        if (fresh.status === "active") {
+          if (!cancelled) {
+            onListingChange(fresh);
+            setPaymentNotice("active");
+          }
+          return;
+        }
+      } catch {
+        // Transient failure — keep polling rather than giving up on one miss.
+      }
+      if (attempts < 8 && !cancelled) setTimeout(poll, 2000);
+    };
+    poll();
+    return () => {
+      cancelled = true;
+    };
+    // Only re-run when the URL's payment param itself changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get("payment")]);
+
   function savePending(next) {
     if (!listing) return;
     if (next) localStorage.setItem(paymentStorageKey(listing.id), JSON.stringify(next));
@@ -429,35 +486,19 @@ function PaymentPanel({ listing, onListingChange }) {
       const res = await api.post(`/payments/listings/${listing.id}/checkout`, {
         couponCode: couponCode.trim() || undefined,
       });
-      savePending({
-        paymentId: res.payment.id,
-        providerRef: res.payment.provider_ref,
-        isTrial: !!res.trialActivated,
-      });
       if (res.trialActivated) {
+        savePending({ paymentId: res.payment.id, isTrial: true });
         const { listing: fresh } = await api.get(`/listings/${listing.id}`);
         onListingChange(fresh);
+        setCheckoutLoading(false);
+      } else {
+        // Full navigation to Stripe's hosted page — component state below
+        // this point never runs, so no need to reset checkoutLoading.
+        window.location.href = res.checkoutUrl;
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("dashboard.checkoutFailed"));
-    } finally {
       setCheckoutLoading(false);
-    }
-  }
-
-  async function handleCompleteDemoPayment() {
-    if (!pending) return;
-    setCompleting(true);
-    setError("");
-    try {
-      await api.post("/payments/webhook", { providerRef: pending.providerRef, status: "paid" });
-      const { listing: fresh } = await api.get(`/listings/${listing.id}`);
-      onListingChange(fresh);
-      savePending(null);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("dashboard.couldntComplete"));
-    } finally {
-      setCompleting(false);
     }
   }
 
@@ -466,13 +507,10 @@ function PaymentPanel({ listing, onListingChange }) {
     setCompleting(true);
     setError("");
     try {
-      await api.post(`/payments/${pending.paymentId}/complete-deferred`);
-      const { listing: fresh } = await api.get(`/listings/${listing.id}`);
-      onListingChange(fresh);
-      savePending(null);
+      const { checkoutUrl } = await api.post(`/payments/${pending.paymentId}/complete-deferred`);
+      window.location.href = checkoutUrl;
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("dashboard.notEnoughViews"));
-    } finally {
       setCompleting(false);
     }
   }
@@ -490,6 +528,14 @@ function PaymentPanel({ listing, onListingChange }) {
       </p>
 
       {error && <div className="alert alert-error">{error}</div>}
+
+      {paymentNotice === "pending" && (
+        <div className="alert alert-info">
+          <span className="spinner" /> {t("dashboard.paymentSuccessPending")}
+        </div>
+      )}
+      {paymentNotice === "active" && <div className="alert alert-success">{t("dashboard.paymentSuccessActive")}</div>}
+      {paymentNotice === "cancelled" && <div className="alert alert-info">{t("dashboard.paymentCancelled")}</div>}
 
       {pending?.isTrial ? (
         <div className="trial-panel">
@@ -509,15 +555,6 @@ function PaymentPanel({ listing, onListingChange }) {
           {deferredStatus && !deferredStatus.thresholdMet && (
             <p className="field-hint">{t("dashboard.notChargeableYet")}</p>
           )}
-        </div>
-      ) : pending ? (
-        <div className="trial-panel">
-          <p>
-            <strong>{t("dashboard.paymentPendingStrong")}</strong> {t("dashboard.paymentPendingBody")}
-          </p>
-          <button className="btn btn-primary btn-sm" onClick={handleCompleteDemoPayment} disabled={completing}>
-            {completing ? <span className="spinner" /> : t("dashboard.completeDemoPayment")}
-          </button>
         </div>
       ) : (
         <form onSubmit={handleCheckout} className="checkout-form">

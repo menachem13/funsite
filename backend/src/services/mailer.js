@@ -1,8 +1,8 @@
 /**
  * Real send if SMTP_HOST is configured, console-log stub otherwise — same
- * "correct but stubbed" pattern as routes/payments.js. Wire a real
- * transactional provider (or plain SMTP) by setting SMTP_HOST/PORT/USER/PASS
- * and, optionally, SMTP_FROM.
+ * lazy-singleton-with-a-fallback shape as services/stripeClient.js. Wire a
+ * real transactional provider (or plain SMTP) by setting
+ * SMTP_HOST/PORT/USER/PASS and, optionally, SMTP_FROM.
  */
 let transporter;
 

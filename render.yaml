@@ -39,3 +39,10 @@ services:
         sync: false
       - key: SUPABASE_STORAGE_BUCKET
         value: listing-media
+      # Real payments (Stripe Checkout + webhook — see backend/README.md's
+      # "Payments (Stripe)" section). Required in production: without these
+      # the server refuses to boot, rather than silently faking a payment.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

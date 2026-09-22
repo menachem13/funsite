@@ -21,6 +21,7 @@
   --danger: #e0384a;
   --danger-bg: #fdeced;
   --success-bg: #e9f9f4;
+  --info-bg: #eef0fe;
 
   --font-heading: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
@@ -370,6 +371,14 @@ textarea {
 .alert-success {
   background: var(--success-bg);
   color: #0f8f70;
+}
+
+.alert-info {
+  background: var(--info-bg);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Badges / tags */

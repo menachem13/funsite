@@ -106,8 +106,8 @@ certs for custom domains automatically).
 
 ## What's stubbed / not yet built
 
-See `backend/README.md` for backend-specific notes. Not built at all yet:
-real payment processing (Stripe — the frontend's checkout flow completes the
-existing stub instead, clearly labeled as a demo payment), structured/
-geocoded location, notifications, password reset, and rate limiting —
-tracked in the product spec.
+See `backend/README.md` for backend-specific notes, including how to
+configure real Stripe payments (`STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`
+— without them, checkout returns a clear 503 rather than faking success).
+Not built at all yet: geocoded/radius location search, notifications, and
+rate limiting — tracked in the product spec.

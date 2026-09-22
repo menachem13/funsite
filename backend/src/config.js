@@ -47,4 +47,14 @@ module.exports = {
   supabaseUrl: requiredInProduction('SUPABASE_URL'),
   supabaseServiceRoleKey: requiredInProduction('SUPABASE_SERVICE_ROLE_KEY'),
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'listing-media',
+
+  // Real listing-fee payments — see services/stripeClient.js and
+  // routes/payments.js. Not required() at boot (a Stripe-less deployment
+  // should still run for everything except actually charging an owner);
+  // routes/payments.js returns a clear 503 instead if these are unset when
+  // checkout is actually attempted, same pattern as adminUsername above.
+  // Required in production so a real deploy can't silently ship with
+  // payments dark.
+  stripeSecretKey: requiredInProduction('STRIPE_SECRET_KEY'),
+  stripeWebhookSecret: requiredInProduction('STRIPE_WEBHOOK_SECRET'),
 };

@@ -100,6 +100,35 @@ Files are stored under `<listingId>/<timestamp>-<random><ext>` in the
 bucket; `listing_media.url` stores the full public Supabase URL directly, so
 no code change is needed if you ever move the bucket.
 
+## Payments (Stripe)
+
+`POST /payments/listings/:id/checkout` creates a real **Stripe Checkout
+Session** for the $100 listing fee and returns its hosted `checkoutUrl` —
+redirect the owner's browser there. Only Stripe's webhook can ever mark a
+payment paid; nothing in the app fakes success client-side.
+
+Setup:
+
+1. Create a Stripe account (test mode needs no business verification) and
+   copy the **test secret key** from the Dashboard (Developers → API keys)
+   into `STRIPE_SECRET_KEY`.
+2. Point a webhook at `POST /payments/webhook` listening for
+   `checkout.session.completed` and `checkout.session.expired`, and copy its
+   **signing secret** into `STRIPE_WEBHOOK_SECRET`:
+   - **Local dev**: run `stripe listen --forward-to localhost:4000/api/payments/webhook`
+     (Stripe CLI) — it prints a `whsec_...` secret for that session.
+   - **Production**: Dashboard → Developers → Webhooks → Add endpoint, URL
+     `https://your-api-host/api/payments/webhook`, same two event types.
+3. Test-mode card `4242 4242 4242 4242`, any future expiry/CVC, completes a
+   checkout; `4000 0000 0000 0002` simulates a decline.
+
+Without these two env vars set, checkout and the deferred-trial completion
+endpoint both return a clear `503` rather than pretending a payment
+succeeded — the rest of the app (browsing, messaging, dashboards, the
+views_gate free-trial grant itself) runs fine regardless, since none of
+that touches Stripe. `NODE_ENV=production` refuses to boot without them
+(`config.js`), same pattern as Supabase Storage above.
+
 ## Coupons
 
 Three mutually exclusive types, admin-created only (`POST /admin/coupons`,
@@ -112,8 +141,8 @@ Three mutually exclusive types, admin-created only (`POST /admin/coupons`,
   months out, no charge yet) and defers the charge until the listing's
   `view_count` reaches `viewThreshold`. Meant for pitching a skeptical new
   owner: "you don't pay until the listing's actually gotten N views." Once
-  the threshold is hit, `POST /payments/:id/complete-deferred` collects the
-  (stubbed) charge; `GET /payments/:id/deferred-status` reports progress
+  the threshold is hit, `POST /payments/:id/complete-deferred` creates a
+  real Stripe Checkout Session for the charge; `GET /payments/:id/deferred-status` reports progress
   toward it in the meantime. If the threshold is never reached, the trial
   just lapses at the normal 6-month expiry via the nightly cron — no special
   handling needed there.
@@ -147,10 +176,10 @@ actually get a `role: admin` token to call these with.
   photo/video storage" above) — local disk (`uploads/`, served at
   `/uploads/...`) is only a local-dev fallback now, since most hosts
   (including Render's free tier) wipe local disk on every redeploy.
-- **Payments are stubbed.** `POST /payments/listings/:id/checkout` and
-  `POST /payments/webhook` correctly create pending payments and
-  activate/expire listings, but don't call a real processor. Swap in Stripe
-  Checkout + webhook verification; keep the same activate-on-`paid` flow.
+- **Payments are real Stripe Checkout + a signature-verified webhook** — see
+  "Payments (Stripe)" above. `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`
+  unset just returns a 503 from the payment routes, so a Stripe-less
+  deployment still runs everything else fine.
 - **CORS** reads `FRONTEND_URL` — set it to the real frontend origin before
   launch (defaults to `*` if unset, which is fine for local dev only).
 - **SSL to Postgres** turns on automatically when `NODE_ENV=production`

@@ -15,6 +15,11 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 app.use(cors({ origin: config.frontendUrl }));
+// Stripe webhook signature verification needs the raw, unparsed request
+// body — this must be registered before the global express.json() below so
+// only this one path's body arrives as a Buffer instead of already-parsed
+// JSON (see routes/payments.js's POST /webhook).
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
