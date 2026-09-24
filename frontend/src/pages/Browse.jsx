@@ -277,6 +277,7 @@ export default function Browse() {
               <option value="newest">{t("browse.sortNewest")}</option>
               <option value="popular">{t("browse.sortPopular")}</option>
               <option value="az">{t("browse.sortAZ")}</option>
+              <option value="capacity">{t("browse.sortCapacity")}</option>
             </select>
           </div>
         </div>

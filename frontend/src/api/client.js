@@ -46,6 +46,31 @@ async function request(path, { method = "GET", body, isForm = false } = {}) {
   }
 
   if (!res.ok) {
+    // A 401 on a request that carried a token means that token is stale
+    // (expired or otherwise invalid) — the account itself may still be
+    // fine, it's just no longer a valid session. Notify AuthContext so it
+    // can log out and redirect once, instead of every protected page on
+    // its own showing a generic "couldn't load" error for what's really a
+    // session problem. A 401 with no token attached (e.g. a wrong-password
+    // login attempt) is just a normal request error, left to the caller.
+    //
+    // The "show a session-expired notice" signal lives in sessionStorage,
+    // not a ?expired= URL param: logging out flips `user` to null, and
+    // ProtectedRoute (on whatever protected page triggered this) reacts to
+    // that on its own with its own bare `/login` redirect — a second,
+    // independent navigation racing this one. Whichever wins, the URL it
+    // lands on can't be relied on to carry state; sessionStorage survives
+    // either.
+    if (res.status === 401 && token) {
+      setToken(null);
+      try {
+        sessionStorage.setItem("funsite_session_expired", "1");
+      } catch {
+        // Private browsing / storage disabled — the notice just won't show;
+        // the user is still correctly logged out and redirected either way.
+      }
+      window.dispatchEvent(new Event("funsite:session-expired"));
+    }
     throw new ApiError(res.status, data?.error || `Request failed (${res.status})`);
   }
 

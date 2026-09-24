@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LogoMark from "../components/LogoMark";
 import { api, ApiError } from "../api/client";
@@ -11,6 +11,29 @@ export default function Login() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+  // Set by api/client.js right before it redirects here on a stale token.
+  // Lives in sessionStorage rather than a ?expired= URL param because
+  // whichever of two competing redirects (this one, or ProtectedRoute's
+  // own) lands last controls the URL — a query string can't be relied on
+  // to survive that. The read here is a plain, side-effect-free state
+  // initializer (safe under StrictMode's double-invoke-to-check-purity in
+  // dev); clearing the flag is a separate effect below, so it shows
+  // exactly once and never reappears on a later, unrelated visit.
+  const [expired] = useState(() => {
+    try {
+      return sessionStorage.getItem("funsite_session_expired") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem("funsite_session_expired");
+    } catch {
+      // Private browsing / storage disabled — nothing to clear.
+    }
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -42,6 +65,7 @@ export default function Login() {
         <h1>{t("auth.loginTitle")}</h1>
         <p className="auth-subtitle">{t("auth.loginSubtitle")}</p>
 
+        {!error && expired && <div className="alert alert-info">{t("auth.sessionExpired")}</div>}
         {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>

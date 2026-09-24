@@ -116,6 +116,11 @@ export default function DashboardHome() {
                     </td>
                     <td>
                       <span className={`badge badge-status-${l.status}`}>{l.status}</span>
+                      {l.status !== "active" && (
+                        <p className="field-hint status-hint">
+                          {l.status === "expired" ? t("dashboard.statusHintExpired") : t("dashboard.statusHintInactive")}
+                        </p>
+                      )}
                     </td>
                     <td>{l.view_count}</td>
                     <td>

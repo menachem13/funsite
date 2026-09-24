@@ -286,6 +286,11 @@ main {
   color: var(--danger);
 }
 
+.status-hint {
+  max-width: 160px;
+  white-space: normal;
+}
+
 input.input-valid,
 textarea.input-valid {
   border-color: #16a34a;

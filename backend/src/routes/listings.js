@@ -181,6 +181,11 @@ router.get(
       newest: 'l.created_at DESC',
       popular: 'l.view_count DESC, l.created_at DESC',
       az: 'l.title ASC',
+      // NULLS LAST: a listing with no capacity set isn't assumed to fit any
+      // group size elsewhere in this file, so it shouldn't float to the top
+      // of a capacity-sorted list either — it sorts after every listing
+      // that actually specified one.
+      capacity: 'l.capacity DESC NULLS LAST, l.created_at DESC',
     };
     const orderBy = SORTS[sort] || SORTS.newest;
 

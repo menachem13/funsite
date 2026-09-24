@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { setToken as persistToken, getToken } from "../api/client";
 
 const USER_KEY = "funsite_user";
@@ -18,12 +19,21 @@ function loadStoredUser() {
 // alongside the JWT rather than re-fetched. Good enough since nothing here
 // changes without a fresh login (email, role, name).
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(() => (getToken() ? loadStoredUser() : null));
+  // Guards against handling the same session expiry twice — e.g. a page
+  // that fires two protected requests in parallel with the same stale
+  // token gets two 401s, and without this both would independently log out
+  // and navigate. Reset on a fresh login so a later, genuine expiry is
+  // still handled.
+  const expiredHandledRef = useRef(false);
 
   const login = useCallback((nextUser, token) => {
     persistToken(token);
     localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
     setUser(nextUser);
+    expiredHandledRef.current = false;
   }, []);
 
   const logout = useCallback(() => {
@@ -31,6 +41,22 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(USER_KEY);
     setUser(null);
   }, []);
+
+  // api/client.js dispatches this when a request that carried a token comes
+  // back 401 — the token is stale (expired, or the account changed), not a
+  // per-page error. Log out and send them back to login with a clear reason,
+  // instead of leaving a dead session sitting in localStorage that keeps
+  // failing the same way on every subsequent page.
+  useEffect(() => {
+    function handleExpired() {
+      if (expiredHandledRef.current) return;
+      expiredHandledRef.current = true;
+      logout();
+      navigate("/login", { replace: true, state: { from: location } });
+    }
+    window.addEventListener("funsite:session-expired", handleExpired);
+    return () => window.removeEventListener("funsite:session-expired", handleExpired);
+  }, [logout, navigate, location]);
 
   const value = useMemo(() => ({ user, login, logout, isAuthenticated: !!user }), [user, login, logout]);
 
