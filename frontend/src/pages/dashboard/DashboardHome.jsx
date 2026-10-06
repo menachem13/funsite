@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
 import { listingCompletenessCount } from "../../utils/listingCompleteness";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import "./Dashboard.css";
 
 export default function DashboardHome() {
@@ -10,6 +11,7 @@ export default function DashboardHome() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   function load() {
     api
@@ -20,8 +22,9 @@ export default function DashboardHome() {
 
   useEffect(load, []);
 
-  async function handleDelete(id, title) {
-    if (!window.confirm(t("dashboard.confirmDelete", { title }))) return;
+  async function confirmDelete() {
+    const { id } = pendingDelete;
+    setPendingDelete(null);
     setDeletingId(id);
     try {
       await api.del(`/listings/${id}`);
@@ -51,6 +54,17 @@ export default function DashboardHome() {
 
   const { listings, totals } = data;
 
+  // Real-data-only activity signal — no invented engagement. A listing with
+  // zero views and zero messages is completely normal right after creation;
+  // this just decides whether a calm "getting started" nudge is more useful
+  // right now than the full table of stats a listing hasn't earned yet.
+  const totalActivity = totals.totalViews + listings.reduce((sum, l) => sum + (l.message_count || 0), 0);
+  const incompleteListing = listings.find((l) => {
+    const { done, total } = listingCompletenessCount(l);
+    return done < total;
+  });
+  const showGettingStarted = listings.length > 0 && totalActivity === 0;
+
   return (
     <div className="dashboard-page container">
       <div className="dashboard-header">
@@ -62,6 +76,26 @@ export default function DashboardHome() {
           {t("dashboard.newListing")}
         </Link>
       </div>
+
+      {showGettingStarted && (
+        <div className="card getting-started-panel">
+          <p className="getting-started-eyebrow">{t("dashboard.gettingStartedEyebrow")}</p>
+          {incompleteListing ? (
+            <>
+              <h2>{t("dashboard.gettingStartedIncompleteTitle")}</h2>
+              <p>{t("dashboard.gettingStartedIncompleteBody")}</p>
+              <Link className="btn btn-primary btn-sm" to={`/dashboard/${incompleteListing.id}/edit`}>
+                {t("dashboard.gettingStartedIncompleteCta", { title: incompleteListing.title })}
+              </Link>
+            </>
+          ) : (
+            <>
+              <h2>{t("dashboard.gettingStartedReadyTitle")}</h2>
+              <p>{t("dashboard.gettingStartedReadyBody")}</p>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="stat-grid">
         <div className="stat-tile">
@@ -84,6 +118,9 @@ export default function DashboardHome() {
 
       {listings.length === 0 ? (
         <div className="empty-state card">
+          <p>
+            <strong>{t("dashboard.noListingsTitle")}</strong>
+          </p>
           <p>{t("dashboard.noListingsYet")}</p>
           <Link className="btn btn-primary" to="/dashboard/new">
             {t("dashboard.createFirstListing")}
@@ -151,7 +188,7 @@ export default function DashboardHome() {
                       </Link>
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(l.id, l.title)}
+                        onClick={() => setPendingDelete({ id: l.id, title: l.title })}
                         disabled={deletingId === l.id}
                       >
                         {t("dashboard.delete")}
@@ -164,6 +201,15 @@ export default function DashboardHome() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title={t("dashboard.deleteListingTitle")}
+        description={pendingDelete ? t("dashboard.confirmDelete", { title: pendingDelete.title }) : ""}
+        confirmLabel={t("dashboard.delete")}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

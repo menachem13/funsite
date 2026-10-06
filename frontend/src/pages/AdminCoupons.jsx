@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
+import ConfirmDialog from "../components/ConfirmDialog";
 import "./AdminCoupons.css";
 
 const EMPTY_FORM = { code: "", type: "percent", percentOff: "", amountOff: "", viewThreshold: "", usageLimit: "" };
@@ -18,6 +19,7 @@ export default function AdminCoupons() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [creating, setCreating] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   function load() {
     api
@@ -69,8 +71,9 @@ export default function AdminCoupons() {
     }
   }
 
-  async function handleDelete(coupon) {
-    if (!window.confirm(t("adminCoupons.confirmDelete", { code: coupon.code }))) return;
+  async function confirmDeleteCoupon() {
+    const coupon = pendingDelete;
+    setPendingDelete(null);
     setBusyId(coupon.id);
     try {
       await api.del(`/admin/coupons/${coupon.id}`);
@@ -216,7 +219,7 @@ export default function AdminCoupons() {
                     >
                       {c.active ? t("adminCoupons.deactivate") : t("adminCoupons.activate")}
                     </button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c)} disabled={busyId === c.id}>
+                    <button className="btn btn-danger btn-sm" onClick={() => setPendingDelete(c)} disabled={busyId === c.id}>
                       {t("adminCoupons.delete")}
                     </button>
                   </td>
@@ -226,6 +229,15 @@ export default function AdminCoupons() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title={t("adminCoupons.deleteCouponTitle")}
+        description={pendingDelete ? t("adminCoupons.confirmDelete", { code: pendingDelete.code }) : ""}
+        confirmLabel={t("adminCoupons.delete")}
+        onConfirm={confirmDeleteCoupon}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

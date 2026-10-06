@@ -4,6 +4,7 @@ import { api, ApiError, assetUrl, getToken, API_URL } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
 import { listingCompletenessChecklist } from "../../utils/listingCompleteness";
 import { CATEGORY_VALUES } from "../../constants/categories";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import "./Dashboard.css";
 
 const EVENT_TYPES = ["camp", "school", "community", "family", "large", "other"];
@@ -333,6 +334,7 @@ function MediaManager({ listingId, media, onChange }) {
   const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [pendingRemoveId, setPendingRemoveId] = useState(null);
   const [error, setError] = useState("");
 
   async function handleFiles(e) {
@@ -361,7 +363,9 @@ function MediaManager({ listingId, media, onChange }) {
     }
   }
 
-  async function handleDeleteMedia(mediaId) {
+  async function confirmDeleteMedia() {
+    const mediaId = pendingRemoveId;
+    setPendingRemoveId(null);
     setError("");
     setDeletingId(mediaId);
     try {
@@ -389,7 +393,7 @@ function MediaManager({ listingId, media, onChange }) {
               <button
                 type="button"
                 className="media-remove-btn"
-                onClick={() => handleDeleteMedia(m.id)}
+                onClick={() => setPendingRemoveId(m.id)}
                 disabled={deletingId === m.id}
                 aria-label={t("dashboard.removeMedia")}
                 title={t("dashboard.removeMedia")}
@@ -405,6 +409,15 @@ function MediaManager({ listingId, media, onChange }) {
         {uploading ? <span className="spinner spinner-dark" /> : t("dashboard.uploadPhotosVideo")}
         <input type="file" multiple accept="image/*,video/*" hidden onChange={handleFiles} disabled={uploading} />
       </label>
+
+      <ConfirmDialog
+        open={pendingRemoveId !== null}
+        title={t("dashboard.removeMediaTitle")}
+        description={t("dashboard.removeMediaConfirm")}
+        confirmLabel={t("dashboard.removeMedia")}
+        onConfirm={confirmDeleteMedia}
+        onCancel={() => setPendingRemoveId(null)}
+      />
     </section>
   );
 }

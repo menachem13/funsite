@@ -97,6 +97,7 @@ a {
 
 button:focus-visible,
 a:focus-visible,
+button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {

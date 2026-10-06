@@ -19,6 +19,29 @@
   margin-bottom: 28px;
 }
 
+.getting-started-panel {
+  margin-bottom: 24px;
+  border-inline-start: 3px solid var(--primary);
+}
+
+.getting-started-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin: 0 0 6px;
+}
+
+.getting-started-panel h2 {
+  font-size: 1.2rem;
+  margin: 0 0 6px;
+}
+
+.getting-started-panel > p:last-of-type {
+  margin-bottom: 16px;
+}
+
 .listing-name-link {
   font-weight: 600;
   color: var(--ink);
