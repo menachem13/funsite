@@ -14,7 +14,7 @@
 }
 
 .thread-list {
-  border-right: 1px solid var(--border);
+  border-inline-end: 1px solid var(--border);
   overflow-y: auto;
   max-height: 72vh;
 }
@@ -22,7 +22,7 @@
 .thread-item {
   display: block;
   width: 100%;
-  text-align: left;
+  text-align: start;
   background: none;
   border: none;
   border-bottom: 1px solid var(--border);
@@ -157,7 +157,7 @@
   }
 
   .thread-list {
-    border-right: none;
+    border-inline-end: none;
     max-height: none;
   }
 

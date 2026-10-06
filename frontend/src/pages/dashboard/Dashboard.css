@@ -34,7 +34,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--accent);
-  margin-left: 6px;
+  margin-inline-start: 6px;
 }
 
 .row-actions {
@@ -50,6 +50,21 @@
   margin-bottom: 4px;
 }
 
+.form-section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 28px 0 4px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.form-section-heading:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -58,6 +73,7 @@
 }
 
 .media-thumb {
+  position: relative;
   aspect-ratio: 1;
   border-radius: 10px;
   overflow: hidden;
@@ -69,6 +85,32 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.media-remove-btn {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(20, 20, 30, 0.65);
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.media-remove-btn:hover {
+  background: var(--danger);
+}
+
+.media-remove-btn:disabled {
+  cursor: default;
 }
 
 .upload-btn {

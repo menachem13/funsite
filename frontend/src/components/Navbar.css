@@ -54,7 +54,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: 8px;
+  margin-inline-start: 8px;
 }
 
 .nav-user {
@@ -106,7 +106,7 @@
   }
 
   .nav-auth {
-    margin-left: 0;
+    margin-inline-start: 0;
     width: 100%;
     padding-top: 10px;
     border-top: 1px solid var(--border);

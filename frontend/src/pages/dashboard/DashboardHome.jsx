@@ -125,7 +125,14 @@ export default function DashboardHome() {
                     <td>{l.view_count}</td>
                     <td>
                       {l.message_count}
-                      {l.unread_message_count > 0 && <span className="unread-dot" title="Unread messages" />}
+                      {l.unread_message_count > 0 && (
+                        <>
+                          <span className="unread-dot" aria-hidden="true" />
+                          <Link to="/inbox" className="field-hint status-hint unread-hint">
+                            {t("dashboard.unreadHint", { count: l.unread_message_count })}
+                          </Link>
+                        </>
+                      )}
                     </td>
                     <td>{l.featured_count}</td>
                     <td>{l.subscription_expires_at ? new Date(l.subscription_expires_at).toLocaleDateString() : "—"}</td>

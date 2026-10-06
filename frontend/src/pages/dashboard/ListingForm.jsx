@@ -145,6 +145,7 @@ export default function ListingForm() {
       {success && <div className="alert alert-success">{success}</div>}
 
       <form onSubmit={handleSubmit} className="card">
+        <h2 className="form-section-heading">{t("dashboard.formSectionBasics")}</h2>
         <div className="field">
           <label htmlFor="title">{t("dashboard.formTitle")}</label>
           <input
@@ -176,6 +177,10 @@ export default function ListingForm() {
               ))}
             </select>
           </div>
+        </div>
+
+        <h2 className="form-section-heading">{t("dashboard.formSectionLocation")}</h2>
+        <div className="form-row">
           <div className="field">
             <label htmlFor="locationCity">{t("dashboard.formCity")}</label>
             <input
@@ -186,9 +191,6 @@ export default function ListingForm() {
               onChange={(e) => updateField("locationCity", e.target.value)}
             />
           </div>
-        </div>
-
-        <div className="form-row">
           <div className="field">
             <label htmlFor="locationState">{t("dashboard.formState")}</label>
             <input
@@ -201,6 +203,7 @@ export default function ListingForm() {
           </div>
         </div>
 
+        <h2 className="form-section-heading">{t("dashboard.formSectionAudience")}</h2>
         <div className="form-row">
           <div className="field">
             <label htmlFor="ageMin">{t("dashboard.formMinAge")}</label>
@@ -265,6 +268,7 @@ export default function ListingForm() {
           </div>
         </div>
 
+        <h2 className="form-section-heading">{t("dashboard.formSectionEventTypes")}</h2>
         <div className="field">
           <label>{t("dashboard.formEventTypes")}</label>
           <p className="field-hint">{t("dashboard.formEventTypesHint")}</p>
@@ -304,11 +308,12 @@ function CompletenessChecklist({ listing, media }) {
 
   const checklist = listingCompletenessChecklist({ ...listing, media_count: media.length });
   const done = checklist.filter((c) => c.done).length;
+  const allDone = done === checklist.length;
 
   return (
     <section className="card dashboard-section">
       <h2>{t("dashboard.completenessTitle")}</h2>
-      <p>{t("dashboard.completenessSubtitle")}</p>
+      <p>{allDone ? t("dashboard.completenessAllDone") : t("dashboard.completenessSubtitle")}</p>
       <p className="field-hint">{t("dashboard.completenessCount", { done, total: checklist.length })}</p>
       <ul className="completeness-list">
         {checklist.map((item) => (
@@ -327,6 +332,7 @@ function CompletenessChecklist({ listing, media }) {
 function MediaManager({ listingId, media, onChange }) {
   const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState("");
 
   async function handleFiles(e) {
@@ -355,6 +361,19 @@ function MediaManager({ listingId, media, onChange }) {
     }
   }
 
+  async function handleDeleteMedia(mediaId) {
+    setError("");
+    setDeletingId(mediaId);
+    try {
+      await api.del(`/listings/${listingId}/media/${mediaId}`);
+      onChange((prev) => prev.filter((m) => m.id !== mediaId));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("dashboard.mediaDeleteError"));
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <section className="card dashboard-section">
       <h2>{t("dashboard.photosVideoTitle")}</h2>
@@ -367,6 +386,16 @@ function MediaManager({ listingId, media, onChange }) {
           {media.map((m) => (
             <div className="media-thumb" key={m.id}>
               {m.type === "video" ? <video src={assetUrl(m.url)} /> : <img src={assetUrl(m.url)} alt="" />}
+              <button
+                type="button"
+                className="media-remove-btn"
+                onClick={() => handleDeleteMedia(m.id)}
+                disabled={deletingId === m.id}
+                aria-label={t("dashboard.removeMedia")}
+                title={t("dashboard.removeMedia")}
+              >
+                {deletingId === m.id ? <span className="spinner" /> : "✕"}
+              </button>
             </div>
           ))}
         </div>

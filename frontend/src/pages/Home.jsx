@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -33,12 +33,24 @@ export default function Home() {
   const { user } = useAuth();
   const { t } = useLanguage();
   useDocumentTitle(t("home.heroTitle"));
+  const location = useLocation();
+  // Set by ProtectedRoute when a logged-in user without the right role tries
+  // a page that isn't theirs (e.g. a renter hitting /dashboard) — a plain,
+  // silent bounce to "/" left no explanation at all. One-shot via router
+  // state (not a query param), so it never reappears on a later, unrelated
+  // visit to the homepage.
+  const [unauthorized] = useState(() => !!location.state?.unauthorized);
   const ownerCta = user?.role === "owner" ? "/dashboard" : "/register";
   const heroRef = useRef(null);
   const showStickyCta = useScrolledPast(heroRef);
 
   return (
     <div className="home-page">
+      {unauthorized && (
+        <div className="container">
+          <div className="alert alert-error unauthorized-banner">{t("common.unauthorizedAccess")}</div>
+        </div>
+      )}
       <section className="hero" ref={heroRef}>
         <div className="hero-bg" aria-hidden="true">
           <span className="blob blob-1" />

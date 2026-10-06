@@ -376,6 +376,29 @@ router.post(
   })
 );
 
+// Only removes the DB row, not the underlying Supabase Storage/local-disk
+// file — same tradeoff the listing-delete route above already makes (its
+// CASCADE on listing_media doesn't clean up storage either). Not worth the
+// added complexity right now; an orphaned file just sits unused.
+router.delete(
+  '/:id/media/:mediaId',
+  authenticate,
+  requireRole('owner'),
+  asyncHandler(async (req, res) => {
+    const listingId = parseInt(req.params.id, 10);
+    const mediaId = parseInt(req.params.mediaId, 10);
+    await loadOwnedListing(listingId, req.user.id);
+
+    const { rowCount } = await pool.query('DELETE FROM listing_media WHERE id = $1 AND listing_id = $2', [
+      mediaId,
+      listingId,
+    ]);
+    if (rowCount === 0) throw new ApiError(404, 'Media not found on this listing');
+
+    res.status(204).send();
+  })
+);
+
 // --- Analytics (owner, must own) ------------------------------------------
 
 router.get(
