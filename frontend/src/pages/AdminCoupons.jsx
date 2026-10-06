@@ -90,7 +90,11 @@ export default function AdminCoupons() {
       <h1>{t("adminCoupons.title")}</h1>
       <p>{t("adminCoupons.subtitle")}</p>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="alert alert-error" role="alert">
+          {error}
+        </div>
+      )}
 
       <form className="card coupon-form" onSubmit={handleCreate}>
         <div className="form-row">

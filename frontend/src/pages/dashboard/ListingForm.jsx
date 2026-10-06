@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, ApiError, assetUrl, getToken, API_URL } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
@@ -52,6 +52,11 @@ export default function ListingForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const alertRef = useRef(null);
+
+  useEffect(() => {
+    if (error) alertRef.current?.focus();
+  }, [error]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -138,12 +143,20 @@ export default function ListingForm() {
   return (
     <div className="dashboard-page container-narrow">
       <Link className="back-link" to="/dashboard">
-        ← {t("dashboard.backToDashboard")}
+        {t("dashboard.backToDashboard")}
       </Link>
       <h1>{isEdit ? t("dashboard.manageListingTitle") : t("dashboard.newListingTitle")}</h1>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {error && (
+        <div className="alert alert-error" role="alert" tabIndex={-1} ref={alertRef}>
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="alert alert-success" role="status">
+          {success}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="card">
         <h2 className="form-section-heading">{t("dashboard.formSectionBasics")}</h2>
@@ -383,7 +396,11 @@ function MediaManager({ listingId, media, onChange }) {
       <h2>{t("dashboard.photosVideoTitle")}</h2>
       <p>{t("dashboard.photosVideoBody")}</p>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="alert alert-error" role="alert">
+          {error}
+        </div>
+      )}
 
       {media.length > 0 && (
         <div className="media-grid">
@@ -569,15 +586,27 @@ function PaymentPanel({ listing, onListingChange }) {
         )}
       </p>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="alert alert-error" role="alert">
+          {error}
+        </div>
+      )}
 
       {paymentNotice === "pending" && (
-        <div className="alert alert-info">
+        <div className="alert alert-info" role="status">
           <span className="spinner" /> {t("dashboard.paymentSuccessPending")}
         </div>
       )}
-      {paymentNotice === "active" && <div className="alert alert-success">{t("dashboard.paymentSuccessActive")}</div>}
-      {paymentNotice === "cancelled" && <div className="alert alert-info">{t("dashboard.paymentCancelled")}</div>}
+      {paymentNotice === "active" && (
+        <div className="alert alert-success" role="status">
+          {t("dashboard.paymentSuccessActive")}
+        </div>
+      )}
+      {paymentNotice === "cancelled" && (
+        <div className="alert alert-info" role="status">
+          {t("dashboard.paymentCancelled")}
+        </div>
+      )}
 
       {pending?.isTrial ? (
         <div className="trial-panel">

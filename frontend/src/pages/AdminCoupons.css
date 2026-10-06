@@ -13,3 +13,15 @@
 .coupon-form .form-row {
   align-items: end;
 }
+
+.admin-section {
+  margin-top: 32px;
+}
+
+.admin-section h2 {
+  margin-bottom: 4px;
+}
+
+.admin-section > p {
+  margin-top: 0;
+}

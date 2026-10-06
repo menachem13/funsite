@@ -10,6 +10,7 @@ export default function DashboardHome() {
   const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
 
@@ -26,11 +27,12 @@ export default function DashboardHome() {
     const { id } = pendingDelete;
     setPendingDelete(null);
     setDeletingId(id);
+    setActionError("");
     try {
       await api.del(`/listings/${id}`);
       load();
     } catch (err) {
-      window.alert(err instanceof ApiError ? err.message : t("dashboard.deleteError"));
+      setActionError(err instanceof ApiError ? err.message : t("dashboard.deleteError"));
     } finally {
       setDeletingId(null);
     }
@@ -76,6 +78,12 @@ export default function DashboardHome() {
           {t("dashboard.newListing")}
         </Link>
       </div>
+
+      {actionError && (
+        <div className="alert alert-error" role="alert">
+          {actionError}
+        </div>
+      )}
 
       {showGettingStarted && (
         <div className="card getting-started-panel">

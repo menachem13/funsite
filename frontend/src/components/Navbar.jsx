@@ -73,9 +73,14 @@ export default function Navbar() {
           )}
 
           {user?.role === "admin" && (
-            <NavLink to="/admin/coupons" onClick={() => setMenuOpen(false)}>
-              {t("nav.coupons")}
-            </NavLink>
+            <>
+              <NavLink to="/admin" end onClick={() => setMenuOpen(false)}>
+                {t("nav.adminOverview")}
+              </NavLink>
+              <NavLink to="/admin/coupons" onClick={() => setMenuOpen(false)}>
+                {t("nav.coupons")}
+              </NavLink>
+            </>
           )}
 
           <div className="nav-auth">

@@ -26,7 +26,7 @@ export default function Inbox() {
   if (error) {
     return (
       <div className="container empty-state">
-        <p>{error}</p>
+        <p role="alert">{error}</p>
       </div>
     );
   }
@@ -45,14 +45,27 @@ export default function Inbox() {
       <div className="inbox-layout">
         <aside className={`thread-list ${threadId ? "hide-on-mobile" : ""}`}>
           {threads.length === 0 ? (
-            <div className="empty-state">
-              <p>{t("inbox.noConversations")}</p>
+            <div className="empty-state inbox-empty">
+              <p>
+                <strong>{t("inbox.noConversationsTitle")}</strong>
+              </p>
+              <p>{user.role === "owner" ? t("inbox.noConversationsBodyOwner") : t("inbox.noConversationsBodyRenter")}</p>
+              {user.role === "renter" && (
+                <Link className="btn btn-primary btn-sm" to="/browse">
+                  {t("common.browseAttractions")}
+                </Link>
+              )}
             </div>
           ) : (
             <ul>
-              {threads.map((t) => (
-                <li key={t.id}>
-                  <ThreadListItem thread={t} active={String(t.id) === threadId} onClick={() => navigate(`/inbox/${t.id}`)} />
+              {threads.map((th) => (
+                <li key={th.id}>
+                  <ThreadListItem
+                    thread={th}
+                    currentUserId={user.id}
+                    active={String(th.id) === threadId}
+                    onClick={() => navigate(`/inbox/${th.id}`)}
+                  />
                 </li>
               ))}
             </ul>
@@ -65,7 +78,7 @@ export default function Inbox() {
               threadId={threadId}
               currentUserId={user.id}
               onUpdate={loadThreads}
-              listingTitle={threads.find((t) => String(t.id) === threadId)?.listing_title}
+              listingTitle={threads.find((th) => String(th.id) === threadId)?.listing_title}
             />
           ) : (
             <div className="empty-state">
@@ -78,15 +91,32 @@ export default function Inbox() {
   );
 }
 
-function ThreadListItem({ thread, active, onClick }) {
+function counterpartName(thread, currentUserId) {
+  return thread.owner_id === currentUserId ? thread.renter_name : thread.owner_name;
+}
+
+function ThreadListItem({ thread, currentUserId, active, onClick }) {
   const { t } = useLanguage();
+  const counterpart = counterpartName(thread, currentUserId);
+
   return (
-    <button className={`thread-item ${active ? "active" : ""}`} onClick={onClick}>
+    <button className={`thread-item ${active ? "active" : ""}`} onClick={onClick} aria-current={active ? "true" : undefined}>
       <div className="thread-item-top">
         <span className="thread-title">{thread.listing_title}</span>
-        {thread.unread_count > 0 && <span className="unread-pill">{thread.unread_count}</span>}
+        {thread.unread_count > 0 && (
+          <span className="unread-pill">
+            {thread.unread_count}
+            <span className="sr-only"> {t("inbox.unreadSuffix")}</span>
+          </span>
+        )}
       </div>
-      <p className="thread-preview">{thread.last_message_body || t("inbox.noMessagesYet")}</p>
+      {counterpart && <p className="thread-counterpart">{counterpart}</p>}
+      <div className="thread-item-bottom">
+        <p className="thread-preview">{thread.last_message_body || t("inbox.noMessagesYet")}</p>
+        {thread.last_message_at && (
+          <span className="thread-time">{new Date(thread.last_message_at).toLocaleDateString()}</span>
+        )}
+      </div>
     </button>
   );
 }
@@ -117,7 +147,7 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
 
   async function handleReply(e) {
     e.preventDefault();
-    if (!body.trim()) return;
+    if (sending || !body.trim()) return;
     setSending(true);
     setError("");
     try {
@@ -132,6 +162,14 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
     }
   }
 
+  function handleComposerKeyDown(e) {
+    // Enter sends; Shift+Enter inserts a newline, as in most chat UIs.
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleReply(e);
+    }
+  }
+
   if (loading) {
     return (
       <div className="center-loading">
@@ -140,17 +178,20 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
     );
   }
 
-  if (!thread) return <div className="empty-state">{error}</div>;
+  if (!thread) return <p className="empty-state" role="alert">{error}</p>;
+
+  const counterpart = counterpartName(thread, currentUserId);
 
   return (
     <div className="thread-panel">
       <div className="thread-panel-header">
         <Link to="/inbox" className="back-link show-on-mobile">
-          ← {t("inbox.allMessages")}
+          {t("inbox.allMessages")}
         </Link>
-        <Link to={`/listings/${thread.listing_id}`}>
-          <strong>{listingTitle || `${t("inbox.listingPrefix")}${thread.listing_id}`}</strong>
+        <Link to={`/listings/${thread.listing_id}`} className="thread-panel-listing">
+          {listingTitle || `${t("inbox.listingPrefix")}${thread.listing_id}`}
         </Link>
+        {counterpart && <p className="thread-panel-counterpart">{t("inbox.conversationWith", { name: counterpart })}</p>}
       </div>
 
       <div className="message-list">
@@ -162,17 +203,25 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
         ))}
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="alert alert-error" role="alert">
+          {error}
+        </div>
+      )}
 
       <form className="reply-form" onSubmit={handleReply}>
-        <input
-          type="text"
+        <label htmlFor="reply-body" className="sr-only">
+          {t("inbox.replyLabel")}
+        </label>
+        <textarea
+          id="reply-body"
+          rows={1}
           placeholder={t("inbox.replyPlaceholder")}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          aria-label="Reply"
+          onKeyDown={handleComposerKeyDown}
         />
-        <button className="btn btn-primary btn-sm" type="submit" disabled={sending}>
+        <button className="btn btn-primary btn-sm" type="submit" disabled={sending || !body.trim()}>
           {sending ? <span className="spinner" /> : t("inbox.send")}
         </button>
       </form>

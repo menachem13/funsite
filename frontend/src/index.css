@@ -97,7 +97,6 @@ a {
 
 button:focus-visible,
 a:focus-visible,
-button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
@@ -155,6 +154,16 @@ main {
 
 .back-link:hover {
   color: var(--primary);
+}
+
+/* The arrow lives in CSS, not as a literal "←" in JSX, so it can flip
+   direction for RTL automatically instead of pointing the wrong way. */
+.back-link::before {
+  content: "← ";
+}
+
+[dir="rtl"] .back-link::before {
+  content: "→ ";
 }
 
 /* Buttons */

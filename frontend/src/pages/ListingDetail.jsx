@@ -159,7 +159,7 @@ export default function ListingDetail() {
   return (
     <div className="listing-detail container">
       <Link className="back-link" to="/browse">
-        ← {t("listingDetail.backToBrowse")}
+        {t("listingDetail.backToBrowse")}
       </Link>
 
       <div className="detail-grid">
@@ -336,7 +336,11 @@ export default function ListingDetail() {
                   />
                   {wasPrefilled && <p className="field-hint">{t("listingDetail.prefillHint")}</p>}
                 </div>
-                {sendError && <div className="alert alert-error">{sendError}</div>}
+                {sendError && (
+                  <div className="alert alert-error" role="alert">
+                    {sendError}
+                  </div>
+                )}
                 <button className="btn btn-primary btn-block" type="submit" disabled={sending}>
                   {sending ? <span className="spinner" /> : t("listingDetail.sendMessage")}
                 </button>

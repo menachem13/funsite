@@ -48,6 +48,26 @@
   color: var(--ink);
 }
 
+.thread-counterpart {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 2px 0 0;
+}
+
+.thread-item-bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.thread-time {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
 .unread-pill {
   background: var(--primary-gradient);
   color: #fff;
@@ -69,6 +89,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.inbox-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 20px;
+}
+
+.inbox-empty p {
+  margin: 0;
 }
 
 .thread-detail {
@@ -87,10 +120,25 @@
 .thread-panel-header {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 14px;
+}
+
+.thread-panel-listing {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.thread-panel-listing:hover {
+  color: var(--primary);
+}
+
+.thread-panel-counterpart {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
 }
 
 .show-on-mobile {
@@ -122,14 +170,17 @@
   align-self: flex-start;
   background: var(--bg);
   color: var(--ink);
-  border-bottom-left-radius: 4px;
+  /* Logical, not physical: "theirs" sits at the inline-start edge, so its
+     flat "tail" corner must stay on that same side when flipped to RTL —
+     border-bottom-left-radius would leave the tail on the wrong corner. */
+  border-end-start-radius: 4px;
 }
 
 .message-bubble.mine {
   align-self: flex-end;
   background: var(--primary-gradient);
   color: #fff;
-  border-bottom-right-radius: 4px;
+  border-end-end-radius: 4px;
 }
 
 .message-time {
@@ -141,14 +192,23 @@
 
 .reply-form {
   display: flex;
+  align-items: flex-end;
   gap: 10px;
   padding-top: 14px;
   margin-top: 14px;
   border-top: 1px solid var(--border);
 }
 
-.reply-form input {
+.reply-form textarea {
   flex: 1;
+  min-height: 42px;
+  max-height: 140px;
+  resize: vertical;
+  padding: 10px 14px;
+}
+
+.reply-form button {
+  flex-shrink: 0;
 }
 
 @media (max-width: 780px) {

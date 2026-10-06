@@ -25,12 +25,16 @@ router.get(
       `SELECT
          t.*,
          l.title AS listing_title,
+         owner.name AS owner_name,
+         renter.name AS renter_name,
          lm.body AS last_message_body,
          lm.created_at AS last_message_at,
          lm.sender_id AS last_message_sender_id,
          COALESCE(unread.count, 0)::int AS unread_count
        FROM threads t
        JOIN listings l ON l.id = t.listing_id
+       JOIN users owner ON owner.id = t.owner_id
+       JOIN users renter ON renter.id = t.renter_id
        LEFT JOIN LATERAL (
          SELECT body, created_at, sender_id FROM messages
          WHERE thread_id = t.id ORDER BY created_at DESC LIMIT 1
@@ -67,7 +71,16 @@ router.get(
       [threadId]
     );
 
-    res.json({ thread, messages });
+    const { rows: nameRows } = await pool.query(
+      `SELECT owner.name AS owner_name, renter.name AS renter_name
+       FROM threads t
+       JOIN users owner ON owner.id = t.owner_id
+       JOIN users renter ON renter.id = t.renter_id
+       WHERE t.id = $1`,
+      [threadId]
+    );
+
+    res.json({ thread: { ...thread, ...nameRows[0] }, messages });
   })
 );
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LogoMark from "../components/LogoMark";
 import { api, ApiError } from "../api/client";
@@ -20,6 +20,8 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const alertRef = useRef(null);
+  const passwordRef = useRef(null);
 
   const emailValid = EMAIL_PATTERN.test(email);
   const passwordValid = password.length >= 8;
@@ -29,7 +31,9 @@ export default function Register() {
     setError("");
 
     if (!passwordValid) {
+      setPasswordTouched(true);
       setError(t("auth.passwordTooShort"));
+      passwordRef.current?.focus();
       return;
     }
 
@@ -40,6 +44,10 @@ export default function Register() {
       navigate(role === "owner" ? "/dashboard" : "/browse", { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("auth.genericError"));
+      // The password-too-short path above moves focus to that field directly
+      // since it's field-specific; a server-side failure (e.g. email already
+      // registered) isn't tied to one field, so the alert itself gets focus.
+      setTimeout(() => alertRef.current?.focus(), 0);
     } finally {
       setLoading(false);
     }
@@ -64,7 +72,11 @@ export default function Register() {
           </button>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && (
+          <div className="alert alert-error" role="alert" tabIndex={-1} ref={alertRef} id="register-error">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -79,12 +91,14 @@ export default function Register() {
               autoComplete="email"
               required
               className={emailTouched ? (emailValid ? "input-valid" : "input-invalid") : ""}
+              aria-invalid={emailTouched && !emailValid ? "true" : undefined}
+              aria-describedby={emailTouched ? "email-hint" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setEmailTouched(true)}
             />
             {emailTouched && (
-              <p className={`field-hint ${emailValid ? "hint-valid" : "hint-invalid"}`}>
+              <p id="email-hint" className={`field-hint ${emailValid ? "hint-valid" : "hint-invalid"}`}>
                 {emailValid ? t("auth.emailValid") : t("auth.emailInvalid")}
               </p>
             )}
@@ -93,16 +107,19 @@ export default function Register() {
             <label htmlFor="password">{t("auth.password")}</label>
             <input
               id="password"
+              ref={passwordRef}
               type="password"
               autoComplete="new-password"
               required
               minLength={8}
               className={passwordTouched ? (passwordValid ? "input-valid" : "input-invalid") : ""}
+              aria-invalid={passwordTouched && !passwordValid ? "true" : undefined}
+              aria-describedby="password-hint"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onBlur={() => setPasswordTouched(true)}
             />
-            <p className={`field-hint ${passwordTouched ? (passwordValid ? "hint-valid" : "hint-invalid") : ""}`}>
+            <p id="password-hint" className={`field-hint ${passwordTouched ? (passwordValid ? "hint-valid" : "hint-invalid") : ""}`}>
               {passwordTouched && passwordValid ? "✓ " : ""}
               {t("auth.passwordHint")}
             </p>

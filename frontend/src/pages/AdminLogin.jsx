@@ -39,7 +39,7 @@ export default function AdminLogin() {
     try {
       const data = await api.post("/auth/admin/verify-otp", { username, code });
       login(data.user, data.token);
-      navigate("/admin/coupons", { replace: true });
+      navigate("/admin", { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("auth.genericError"));
     } finally {

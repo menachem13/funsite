@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LogoMark from "../components/LogoMark";
 import { api, ApiError } from "../api/client";
@@ -38,6 +38,11 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const alertRef = useRef(null);
+
+  useEffect(() => {
+    if (error) alertRef.current?.focus();
+  }, [error]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -65,8 +70,16 @@ export default function Login() {
         <h1>{t("auth.loginTitle")}</h1>
         <p className="auth-subtitle">{t("auth.loginSubtitle")}</p>
 
-        {!error && expired && <div className="alert alert-info">{t("auth.sessionExpired")}</div>}
-        {error && <div className="alert alert-error">{error}</div>}
+        {!error && expired && (
+          <div className="alert alert-info" role="status">
+            {t("auth.sessionExpired")}
+          </div>
+        )}
+        {error && (
+          <div className="alert alert-error" role="alert" tabIndex={-1} ref={alertRef} id="login-error">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -76,6 +89,8 @@ export default function Login() {
               type="email"
               autoComplete="email"
               required
+              aria-invalid={error ? "true" : undefined}
+              aria-describedby={error ? "login-error" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -92,6 +107,8 @@ export default function Login() {
               type="password"
               autoComplete="current-password"
               required
+              aria-invalid={error ? "true" : undefined}
+              aria-describedby={error ? "login-error" : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

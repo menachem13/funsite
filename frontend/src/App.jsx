@@ -15,6 +15,7 @@ import DashboardHome from "./pages/dashboard/DashboardHome";
 import ListingForm from "./pages/dashboard/ListingForm";
 import Inbox from "./pages/Inbox";
 import AdminLogin from "./pages/AdminLogin";
+import AdminHome from "./pages/AdminHome";
 import AdminCoupons from "./pages/AdminCoupons";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -85,6 +86,14 @@ export default function App() {
           />
 
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <AdminHome />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/coupons"
             element={
