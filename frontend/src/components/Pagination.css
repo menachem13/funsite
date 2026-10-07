@@ -1,0 +1,23 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.pagination-status {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 10px;
+  }
+
+  .pagination-status {
+    font-size: 0.78rem;
+  }
+}

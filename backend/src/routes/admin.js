@@ -3,51 +3,25 @@ const pool = require('../db/pool');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const { authenticate, requireRole } = require('../middleware/auth');
+const { parsePagination, buildPageMeta } = require('../utils/pagination');
+const { COMPLETENESS_TOTAL, COMPLETENESS_DONE_SQL, MEDIA_COUNT_LATERAL_JOIN } = require('../utils/listingCompleteness');
 
 const router = express.Router();
 const COUPON_TYPES = ['percent', 'fixed', 'views_gate'];
 
-// How many of the same six optional-but-valuable fields a listing has
-// filled in — mirrors frontend/src/utils/listingCompleteness.js exactly
-// (description, a photo/video, location, capacity, event types, age range).
-// There's no shared module between the two separately-deployed frontend
-// (ESM) and backend (CommonJS) packages, so this predicate is duplicated by
-// hand; keep it in sync if listingCompleteness.js's checks ever change.
-const COMPLETENESS_TOTAL = 6;
-const COMPLETENESS_DONE_SQL = `(
-  (CASE WHEN l.description IS NOT NULL AND trim(l.description) <> '' THEN 1 ELSE 0 END) +
-  (CASE WHEN COALESCE(media.count, 0) > 0 THEN 1 ELSE 0 END) +
-  (CASE WHEN l.location IS NOT NULL AND trim(l.location) <> '' THEN 1 ELSE 0 END) +
-  (CASE WHEN l.capacity IS NOT NULL THEN 1 ELSE 0 END) +
-  (CASE WHEN l.event_types IS NOT NULL AND array_length(l.event_types, 1) > 0 THEN 1 ELSE 0 END) +
-  (CASE WHEN l.audience_age_min IS NOT NULL OR l.audience_age_max IS NOT NULL THEN 1 ELSE 0 END)
-)`;
-
-// GET /admin/summary — real, current counts for the admin overview page.
-// Intentionally simple (no analytics system, no invented activity): just
-// what's actually in the database right now.
+// GET /admin/summary — real, current counts for the admin overview's stat
+// tiles. Intentionally simple (no analytics system, no invented activity):
+// just what's actually in the database right now. The "needs attention"
+// list itself is its own paginated endpoint below, so loading the counts
+// never has to also run (and re-run, on every page change) that query.
 router.get(
   '/summary',
   authenticate,
   requireRole('admin'),
   asyncHandler(async (req, res) => {
-    const [listingCounts, userCounts, attention] = await Promise.all([
-      pool.query(
-        `SELECT status, COUNT(*)::int AS count FROM listings GROUP BY status`
-      ),
+    const [listingCounts, userCounts] = await Promise.all([
+      pool.query(`SELECT status, COUNT(*)::int AS count FROM listings GROUP BY status`),
       pool.query(`SELECT role, COUNT(*)::int AS count FROM users GROUP BY role`),
-      pool.query(
-        `SELECT l.id, l.title, l.status, u.name AS owner_name, l.created_at,
-                ${COMPLETENESS_DONE_SQL} AS done
-         FROM listings l
-         JOIN users u ON u.id = l.owner_id
-         LEFT JOIN LATERAL (
-           SELECT COUNT(*) AS count FROM listing_media WHERE listing_id = l.id
-         ) media ON true
-         WHERE l.status = 'active' AND ${COMPLETENESS_DONE_SQL} < ${COMPLETENESS_TOTAL}
-         ORDER BY l.created_at DESC
-         LIMIT 8`
-      ),
     ]);
 
     const byStatus = Object.fromEntries(listingCounts.rows.map((r) => [r.status, r.count]));
@@ -65,13 +39,50 @@ router.get(
         owners: byRole.owner || 0,
         renters: byRole.renter || 0,
       },
-      attentionListings: attention.rows.map((l) => ({
+    });
+  })
+);
+
+// GET /admin/attention — paginated active-but-incomplete listings.
+// Ordered oldest-first: a listing that's been live and incomplete the
+// longest is the most overdue for a nudge, so it surfaces first rather than
+// whatever was most recently created.
+router.get(
+  '/attention',
+  authenticate,
+  requireRole('admin'),
+  asyncHandler(async (req, res) => {
+    const { page, pageSize } = parsePagination(req.query);
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS count
+       FROM listings l
+       ${MEDIA_COUNT_LATERAL_JOIN}
+       WHERE l.status = 'active' AND ${COMPLETENESS_DONE_SQL} < ${COMPLETENESS_TOTAL}`
+    );
+    const meta = buildPageMeta({ page, pageSize, totalItems: countResult.rows[0].count });
+
+    const { rows } = await pool.query(
+      `SELECT l.id, l.title, l.status, u.name AS owner_name, l.created_at,
+              ${COMPLETENESS_DONE_SQL} AS done
+       FROM listings l
+       JOIN users u ON u.id = l.owner_id
+       ${MEDIA_COUNT_LATERAL_JOIN}
+       WHERE l.status = 'active' AND ${COMPLETENESS_DONE_SQL} < ${COMPLETENESS_TOTAL}
+       ORDER BY l.created_at ASC
+       LIMIT $1 OFFSET $2`,
+      [meta.pageSize, meta.offset]
+    );
+
+    res.json({
+      items: rows.map((l) => ({
         id: l.id,
         title: l.title,
         status: l.status,
         ownerName: l.owner_name,
         completeness: { done: l.done, total: COMPLETENESS_TOTAL },
       })),
+      pagination: meta,
     });
   })
 );

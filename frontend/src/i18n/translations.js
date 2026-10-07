@@ -30,6 +30,15 @@ export const translations = {
       backHome: "Back home",
       unauthorizedAccess: "You don't have access to that page.",
     },
+    toast: {
+      dismiss: "Dismiss notification",
+    },
+    pagination: {
+      navLabel: "Pagination",
+      previous: "Previous",
+      next: "Next",
+      pageOf: "Page {page} of {totalPages}",
+    },
     nav: {
       browse: "Browse",
       categories: "Categories",
@@ -395,6 +404,7 @@ export const translations = {
       deleteListingTitle: "Delete listing",
       loadError: "Couldn't load your dashboard. Try refreshing.",
       deleteError: "Couldn't delete that listing.",
+      listingDeletedToast: '"{title}" was deleted.',
 
       backToDashboard: "Back to dashboard",
       manageListingTitle: "Manage listing",
@@ -439,6 +449,7 @@ export const translations = {
       removeMediaTitle: "Remove photo/video",
       removeMediaConfirm: "Remove this photo or video from the listing? This can't be undone.",
       mediaDeleteError: "Couldn't remove that photo/video.",
+      mediaRemovedToast: "Photo/video removed.",
 
       listingPlanTitle: "Listing plan",
       status: "Status",
@@ -513,6 +524,10 @@ export const translations = {
       offSuffix: "off",
       freeUntilPrefix: "Free until",
       freeUntilSuffix: "views",
+      createdToast: 'Coupon "{code}" created.',
+      deletedToast: 'Coupon "{code}" deleted.',
+      activatedToast: 'Coupon "{code}" activated.',
+      deactivatedToast: 'Coupon "{code}" deactivated.',
     },
     adminHome: {
       title: "Admin overview",
@@ -524,6 +539,7 @@ export const translations = {
       attentionTitle: "Listings needing attention",
       attentionSubtitle: "Active listings that are missing details customers see on the listing page.",
       attentionEmpty: "Nothing needs attention right now — every active listing is complete.",
+      attentionLoadError: "Couldn't load the attention list.",
       colListing: "Listing",
       colOwner: "Owner",
       colCompleteness: "Completeness",
@@ -613,6 +629,15 @@ export const translations = {
       delete: "אויסמעקן",
       backHome: "צוריק אַהיים",
       unauthorizedAccess: "איר האָט נישט קיין צוטריט צו יענער זײַט.",
+    },
+    toast: {
+      dismiss: "פֿאַרמאַכן די מעלדונג",
+    },
+    pagination: {
+      navLabel: "בלעטער",
+      previous: "צוריק",
+      next: "ווײַטער",
+      pageOf: "זײַט {page} פֿון {totalPages}",
     },
     nav: {
       browse: "קוקט אַרום",
@@ -974,6 +999,7 @@ export const translations = {
       deleteListingTitle: "אויסמעקן דעם ליסטינג",
       loadError: "מיר האָבן נישט געקענט לאָדן אײַער דאַשבאָרד. פּרוּווט צו לאָדן נאָך אַ מאָל.",
       deleteError: "מיר האָבן נישט געקענט אויסמעקן דעם ליסטינג.",
+      listingDeletedToast: '"{title}" איז אויסגעמעקט געוואָרן.',
 
       backToDashboard: "צוריק צום דאַשבאָרד",
       manageListingTitle: "פֿירט דעם ליסטינג",
@@ -1018,6 +1044,7 @@ export const translations = {
       removeMediaTitle: "אַוועקנעמען פֿאָטאָ/ווידעאָ",
       removeMediaConfirm: "אַוועקנעמען די פֿאָטאָ אָדער ווידעאָ פֿונעם ליסטינג? דאָס קען מען נישט צוריקנעמען.",
       mediaDeleteError: "מיר האָבן נישט געקענט אַוועקנעמען די פֿאָטאָ/ווידעאָ.",
+      mediaRemovedToast: "די פֿאָטאָ/ווידעאָ איז אַוועקגענומען געוואָרן.",
 
       listingPlanTitle: "ליסטינג-פּלאַן",
       status: "סטאַטוס",
@@ -1092,6 +1119,10 @@ export const translations = {
       offSuffix: "אַראָפּ",
       freeUntilPrefix: "פֿרײַ ביז",
       freeUntilSuffix: "קוקערס",
+      createdToast: 'דער קופּאָן "{code}" איז באַשאַפֿן געוואָרן.',
+      deletedToast: 'דער קופּאָן "{code}" איז אויסגעמעקט געוואָרן.',
+      activatedToast: 'דער קופּאָן "{code}" איז אַקטיווירט געוואָרן.',
+      deactivatedToast: 'דער קופּאָן "{code}" איז געמאַכט געוואָרן אינאַקטיוו.',
     },
     adminHome: {
       title: "אַדמין איבערבליק",
@@ -1103,6 +1134,7 @@ export const translations = {
       attentionTitle: "ליסטינגס וואָס דאַרפֿן אַכטונג",
       attentionSubtitle: "אַקטיווע ליסטינגס וואָס פֿעלן פּרטים וואָס קונים זעען אויף דער ליסטינג-זײַט.",
       attentionEmpty: "איצט דאַרף גאָרנישט קיין אַכטונג — יעדע אַקטיוו ליסטינג איז פֿולקאָם.",
+      attentionLoadError: "מיר האָבן נישט געקענט לאָדן די רשימה.",
       colListing: "ליסטינג",
       colOwner: "בעל-הבית",
       colCompleteness: "פֿולקייט",

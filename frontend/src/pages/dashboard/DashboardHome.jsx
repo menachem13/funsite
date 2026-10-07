@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 import { listingCompletenessCount } from "../../utils/listingCompleteness";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import Pagination from "../../components/Pagination";
 import "./Dashboard.css";
+
+const PAGE_SIZE = 20;
 
 export default function DashboardHome() {
   const { t } = useLanguage();
+  const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedPage = Math.max(1, parseInt(searchParams.get("page"), 10) || 1);
+
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -16,20 +24,40 @@ export default function DashboardHome() {
 
   function load() {
     api
-      .get("/owner/dashboard")
-      .then(setData)
+      .get(`/owner/dashboard?page=${requestedPage}&pageSize=${PAGE_SIZE}`)
+      .then((d) => {
+        setData(d);
+        // The backend clamps an out-of-range page (e.g. a bookmark from
+        // when there were more listings) to the nearest valid one — reflect
+        // that back into the URL so Previous/Next and a refresh agree.
+        if (d.pagination.page !== requestedPage) {
+          setSearchParams((sp) => {
+            sp.set("page", String(d.pagination.page));
+            return sp;
+          }, { replace: true });
+        }
+      })
       .catch(() => setError(t("dashboard.loadError")));
   }
 
-  useEffect(load, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(load, [requestedPage]);
+
+  function goToPage(page) {
+    setSearchParams((sp) => {
+      sp.set("page", String(page));
+      return sp;
+    });
+  }
 
   async function confirmDelete() {
-    const { id } = pendingDelete;
+    const { id, title } = pendingDelete;
     setPendingDelete(null);
     setDeletingId(id);
     setActionError("");
     try {
       await api.del(`/listings/${id}`);
+      toast.success(t("dashboard.listingDeletedToast", { title }));
       load();
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : t("dashboard.deleteError"));
@@ -54,18 +82,8 @@ export default function DashboardHome() {
     );
   }
 
-  const { listings, totals } = data;
-
-  // Real-data-only activity signal — no invented engagement. A listing with
-  // zero views and zero messages is completely normal right after creation;
-  // this just decides whether a calm "getting started" nudge is more useful
-  // right now than the full table of stats a listing hasn't earned yet.
-  const totalActivity = totals.totalViews + listings.reduce((sum, l) => sum + (l.message_count || 0), 0);
-  const incompleteListing = listings.find((l) => {
-    const { done, total } = listingCompletenessCount(l);
-    return done < total;
-  });
-  const showGettingStarted = listings.length > 0 && totalActivity === 0;
+  const { listings, totals, pagination } = data;
+  const showGettingStarted = totals.listingCount > 0 && totals.totalActivity === 0;
 
   return (
     <div className="dashboard-page container">
@@ -88,12 +106,12 @@ export default function DashboardHome() {
       {showGettingStarted && (
         <div className="card getting-started-panel">
           <p className="getting-started-eyebrow">{t("dashboard.gettingStartedEyebrow")}</p>
-          {incompleteListing ? (
+          {totals.incompleteListing ? (
             <>
               <h2>{t("dashboard.gettingStartedIncompleteTitle")}</h2>
               <p>{t("dashboard.gettingStartedIncompleteBody")}</p>
-              <Link className="btn btn-primary btn-sm" to={`/dashboard/${incompleteListing.id}/edit`}>
-                {t("dashboard.gettingStartedIncompleteCta", { title: incompleteListing.title })}
+              <Link className="btn btn-primary btn-sm" to={`/dashboard/${totals.incompleteListing.id}/edit`}>
+                {t("dashboard.gettingStartedIncompleteCta", { title: totals.incompleteListing.title })}
               </Link>
             </>
           ) : (
@@ -135,79 +153,82 @@ export default function DashboardHome() {
           </Link>
         </div>
       ) : (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>{t("dashboard.colListing")}</th>
-                <th>{t("dashboard.colStatus")}</th>
-                <th>{t("dashboard.colViews")}</th>
-                <th>{t("dashboard.colMessages")}</th>
-                <th>{t("dashboard.colFeatured")}</th>
-                <th>{t("dashboard.colExpires")}</th>
-                <th>{t("dashboard.colCompleteness")}</th>
-                <th aria-label="Actions" />
-              </tr>
-            </thead>
-            <tbody>
-              {listings.map((l) => {
-                const { done, total } = listingCompletenessCount(l);
-                return (
-                  <tr key={l.id}>
-                    <td>
-                      <Link to={`/dashboard/${l.id}/edit`} className="listing-name-link">
-                        {l.title}
-                      </Link>
-                    </td>
-                    <td>
-                      <span className={`badge badge-status-${l.status}`}>{l.status}</span>
-                      {l.status !== "active" && (
-                        <p className="field-hint status-hint">
-                          {l.status === "expired" ? t("dashboard.statusHintExpired") : t("dashboard.statusHintInactive")}
-                        </p>
-                      )}
-                    </td>
-                    <td>{l.view_count}</td>
-                    <td>
-                      {l.message_count}
-                      {l.unread_message_count > 0 && (
-                        <>
-                          <span className="unread-dot" aria-hidden="true" />
-                          <Link to="/inbox" className="field-hint status-hint unread-hint">
-                            {t("dashboard.unreadHint", { count: l.unread_message_count })}
-                          </Link>
-                        </>
-                      )}
-                    </td>
-                    <td>{l.featured_count}</td>
-                    <td>{l.subscription_expires_at ? new Date(l.subscription_expires_at).toLocaleDateString() : "—"}</td>
-                    <td>
-                      <Link
-                        to={`/dashboard/${l.id}/edit`}
-                        className={`badge ${done === total ? "badge-status-active" : "badge-status-inactive"}`}
-                        title={t("dashboard.completenessCount", { done, total })}
-                      >
-                        {done}/{total}
-                      </Link>
-                    </td>
-                    <td className="row-actions">
-                      <Link className="btn btn-secondary btn-sm" to={`/dashboard/${l.id}/edit`}>
-                        {t("dashboard.manage")}
-                      </Link>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => setPendingDelete({ id: l.id, title: l.title })}
-                        disabled={deletingId === l.id}
-                      >
-                        {t("dashboard.delete")}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>{t("dashboard.colListing")}</th>
+                  <th>{t("dashboard.colStatus")}</th>
+                  <th>{t("dashboard.colViews")}</th>
+                  <th>{t("dashboard.colMessages")}</th>
+                  <th>{t("dashboard.colFeatured")}</th>
+                  <th>{t("dashboard.colExpires")}</th>
+                  <th>{t("dashboard.colCompleteness")}</th>
+                  <th aria-label="Actions" />
+                </tr>
+              </thead>
+              <tbody>
+                {listings.map((l) => {
+                  const { done, total } = listingCompletenessCount(l);
+                  return (
+                    <tr key={l.id}>
+                      <td>
+                        <Link to={`/dashboard/${l.id}/edit`} className="listing-name-link">
+                          {l.title}
+                        </Link>
+                      </td>
+                      <td>
+                        <span className={`badge badge-status-${l.status}`}>{l.status}</span>
+                        {l.status !== "active" && (
+                          <p className="field-hint status-hint">
+                            {l.status === "expired" ? t("dashboard.statusHintExpired") : t("dashboard.statusHintInactive")}
+                          </p>
+                        )}
+                      </td>
+                      <td>{l.view_count}</td>
+                      <td>
+                        {l.message_count}
+                        {l.unread_message_count > 0 && (
+                          <>
+                            <span className="unread-dot" aria-hidden="true" />
+                            <Link to="/inbox" className="field-hint status-hint unread-hint">
+                              {t("dashboard.unreadHint", { count: l.unread_message_count })}
+                            </Link>
+                          </>
+                        )}
+                      </td>
+                      <td>{l.featured_count}</td>
+                      <td>{l.subscription_expires_at ? new Date(l.subscription_expires_at).toLocaleDateString() : "—"}</td>
+                      <td>
+                        <Link
+                          to={`/dashboard/${l.id}/edit`}
+                          className={`badge ${done === total ? "badge-status-active" : "badge-status-inactive"}`}
+                          title={t("dashboard.completenessCount", { done, total })}
+                        >
+                          {done}/{total}
+                        </Link>
+                      </td>
+                      <td className="row-actions">
+                        <Link className="btn btn-secondary btn-sm" to={`/dashboard/${l.id}/edit`}>
+                          {t("dashboard.manage")}
+                        </Link>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => setPendingDelete({ id: l.id, title: l.title })}
+                          disabled={deletingId === l.id}
+                        >
+                          {t("dashboard.delete")}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <Pagination page={pagination.page} totalPages={pagination.totalPages} onPageChange={goToPage} />
+        </>
       )}
 
       <ConfirmDialog

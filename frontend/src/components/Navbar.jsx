@@ -4,6 +4,7 @@ import LogoMark from "./LogoMark";
 import LanguageToggle from "./LanguageToggle";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useUnreadMessages } from "../context/UnreadMessagesContext";
 import "./Navbar.css";
 
 export default function Navbar() {
@@ -11,6 +12,7 @@ export default function Navbar() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { unreadCount } = useUnreadMessages();
 
   function handleLogout() {
     logout();
@@ -57,6 +59,12 @@ export default function Navbar() {
               </NavLink>
               <NavLink to="/inbox" onClick={() => setMenuOpen(false)}>
                 {t("nav.inbox")}
+                {unreadCount > 0 && (
+                  <span className="nav-unread-badge">
+                    {unreadCount}
+                    <span className="sr-only"> {t("inbox.unreadSuffix")}</span>
+                  </span>
+                )}
               </NavLink>
             </>
           )}
@@ -68,6 +76,12 @@ export default function Navbar() {
               </NavLink>
               <NavLink to="/inbox" onClick={() => setMenuOpen(false)}>
                 {t("nav.messages")}
+                {unreadCount > 0 && (
+                  <span className="nav-unread-badge">
+                    {unreadCount}
+                    <span className="sr-only"> {t("inbox.unreadSuffix")}</span>
+                  </span>
+                )}
               </NavLink>
             </>
           )}

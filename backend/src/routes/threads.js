@@ -52,13 +52,20 @@ router.get(
   })
 );
 
-// GET /threads/:id — full history, marks incoming messages as read
+// GET /threads/:id — full history, marks incoming messages as read.
+// GET /threads/:id?afterId=N — same thread/membership check, but only
+// messages with id > N (for polling an already-open conversation without
+// re-fetching its entire history on every tick). Still marks any newly
+// arrived incoming messages read, same as the full fetch.
 router.get(
   '/:id',
   authenticate,
   asyncHandler(async (req, res) => {
     const threadId = parseInt(req.params.id, 10);
     const thread = await loadParticipantThread(threadId, req.user.id);
+
+    const afterId = req.query.afterId !== undefined ? parseInt(req.query.afterId, 10) : null;
+    const hasAfterId = Number.isInteger(afterId);
 
     await pool.query(
       `UPDATE messages SET read_at = now()
@@ -67,8 +74,10 @@ router.get(
     );
 
     const { rows: messages } = await pool.query(
-      'SELECT * FROM messages WHERE thread_id = $1 ORDER BY created_at ASC',
-      [threadId]
+      hasAfterId
+        ? 'SELECT * FROM messages WHERE thread_id = $1 AND id > $2 ORDER BY created_at ASC'
+        : 'SELECT * FROM messages WHERE thread_id = $1 ORDER BY created_at ASC',
+      hasAfterId ? [threadId, afterId] : [threadId]
     );
 
     const { rows: nameRows } = await pool.query(

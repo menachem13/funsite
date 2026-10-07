@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, ApiError, assetUrl, getToken, API_URL } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 import { listingCompletenessChecklist } from "../../utils/listingCompleteness";
 import { CATEGORY_VALUES } from "../../constants/categories";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -44,6 +45,7 @@ export default function ListingForm() {
   const isEdit = !!id;
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const toast = useToast();
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [listing, setListing] = useState(null);
@@ -51,7 +53,6 @@ export default function ListingForm() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const alertRef = useRef(null);
 
   useEffect(() => {
@@ -99,7 +100,6 @@ export default function ListingForm() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setSaving(true);
 
     const payload = {
@@ -120,7 +120,7 @@ export default function ListingForm() {
       if (isEdit) {
         const { listing: updated } = await api.put(`/listings/${id}`, payload);
         setListing(updated);
-        setSuccess(t("dashboard.changesSaved"));
+        toast.success(t("dashboard.changesSaved"));
       } else {
         const { listing: created } = await api.post("/listings", payload);
         navigate(`/dashboard/${created.id}/edit`, { replace: true });
@@ -150,11 +150,6 @@ export default function ListingForm() {
       {error && (
         <div className="alert alert-error" role="alert" tabIndex={-1} ref={alertRef}>
           {error}
-        </div>
-      )}
-      {success && (
-        <div className="alert alert-success" role="status">
-          {success}
         </div>
       )}
 
@@ -345,6 +340,7 @@ function CompletenessChecklist({ listing, media }) {
 
 function MediaManager({ listingId, media, onChange }) {
   const { t } = useLanguage();
+  const toast = useToast();
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [pendingRemoveId, setPendingRemoveId] = useState(null);
@@ -384,6 +380,7 @@ function MediaManager({ listingId, media, onChange }) {
     try {
       await api.del(`/listings/${listingId}/media/${mediaId}`);
       onChange((prev) => prev.filter((m) => m.id !== mediaId));
+      toast.success(t("dashboard.mediaRemovedToast"));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("dashboard.mediaDeleteError"));
     } finally {

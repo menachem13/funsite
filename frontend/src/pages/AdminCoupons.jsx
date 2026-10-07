@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "../context/ToastContext";
 import ConfirmDialog from "../components/ConfirmDialog";
 import "./AdminCoupons.css";
 
@@ -14,6 +15,7 @@ function describeCoupon(c, t) {
 
 export default function AdminCoupons() {
   const { t } = useLanguage();
+  const toast = useToast();
   const [coupons, setCoupons] = useState(null);
   const [error, setError] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
@@ -51,6 +53,7 @@ export default function AdminCoupons() {
     try {
       await api.post("/admin/coupons", payload);
       setForm(EMPTY_FORM);
+      toast.success(t("adminCoupons.createdToast", { code: payload.code }));
       load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("adminCoupons.createError"));
@@ -63,6 +66,7 @@ export default function AdminCoupons() {
     setBusyId(coupon.id);
     try {
       await api.patch(`/admin/coupons/${coupon.id}`, { active: !coupon.active });
+      toast.success(coupon.active ? t("adminCoupons.deactivatedToast", { code: coupon.code }) : t("adminCoupons.activatedToast", { code: coupon.code }));
       load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("adminCoupons.updateError"));
@@ -77,6 +81,7 @@ export default function AdminCoupons() {
     setBusyId(coupon.id);
     try {
       await api.del(`/admin/coupons/${coupon.id}`);
+      toast.success(t("adminCoupons.deletedToast", { code: coupon.code }));
       load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("adminCoupons.deleteError"));

@@ -1,37 +1,36 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useUnreadMessages } from "../context/UnreadMessagesContext";
 import "./Inbox.css";
+
+// How often the open conversation polls for new messages. Shorter than the
+// sidebar's 20s thread-list poll (UnreadMessagesContext) since this is the
+// one place the user is actively looking at — a reply should show up
+// promptly without feeling like a manual-refresh app.
+const THREAD_POLL_INTERVAL_MS = 6000;
+// How close to the bottom (px) still counts as "at the bottom" for deciding
+// whether an incoming message should auto-scroll into view.
+const NEAR_BOTTOM_THRESHOLD = 80;
 
 export default function Inbox() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { threadId } = useParams();
   const navigate = useNavigate();
+  const { threads, loaded, refresh } = useUnreadMessages();
 
-  const [threads, setThreads] = useState(null);
-  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!loaded) refresh();
+    // Only on mount / if somehow never loaded yet — the shared context
+    // already owns its own polling loop, this just covers the case of
+    // landing on /inbox before that first fetch has resolved.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  function loadThreads() {
-    api
-      .get("/threads")
-      .then((d) => setThreads(d.threads))
-      .catch(() => setError(t("inbox.loadError")));
-  }
-
-  useEffect(loadThreads, []);
-
-  if (error) {
-    return (
-      <div className="container empty-state">
-        <p role="alert">{error}</p>
-      </div>
-    );
-  }
-
-  if (!threads) {
+  if (!loaded) {
     return (
       <div className="center-loading">
         <span className="spinner spinner-dark" />
@@ -77,7 +76,7 @@ export default function Inbox() {
             <ThreadDetail
               threadId={threadId}
               currentUserId={user.id}
-              onUpdate={loadThreads}
+              onUpdate={refresh}
               listingTitle={threads.find((th) => String(th.id) === threadId)?.listing_title}
             />
           ) : (
@@ -121,6 +120,14 @@ function ThreadListItem({ thread, currentUserId, active, onClick }) {
   );
 }
 
+function mergeNewMessages(existing, incoming) {
+  if (incoming.length === 0) return existing;
+  const existingIds = new Set(existing.map((m) => m.id));
+  const toAdd = incoming.filter((m) => !existingIds.has(m.id));
+  if (toAdd.length === 0) return existing;
+  return [...existing, ...toAdd];
+}
+
 function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
   const { t } = useLanguage();
   const [thread, setThread] = useState(null);
@@ -130,19 +137,95 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
+  const messageListRef = useRef(null);
+  const lastMessageIdRef = useRef(0);
+  const activeThreadIdRef = useRef(threadId);
+  const shouldAutoScrollRef = useRef(false);
+  const pollInFlightRef = useRef(false);
+
+  function isNearBottom() {
+    const el = messageListRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD;
+  }
+
+  function scrollToBottom() {
+    const el = messageListRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  // Auto-scroll runs as an effect (after the DOM has the new message
+  // heights) rather than inline in the poll/send handlers, so it always
+  // measures the post-update layout.
   useEffect(() => {
+    if (shouldAutoScrollRef.current) {
+      shouldAutoScrollRef.current = false;
+      scrollToBottom();
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    activeThreadIdRef.current = threadId;
     setLoading(true);
+    setError("");
+    setMessages([]);
+    lastMessageIdRef.current = 0;
+
     api
       .get(`/threads/${threadId}`)
       .then((d) => {
+        if (activeThreadIdRef.current !== threadId) return; // user already switched threads
         setThread(d.thread);
         setMessages(d.messages);
+        lastMessageIdRef.current = d.messages.reduce((max, m) => Math.max(max, m.id), 0);
+        shouldAutoScrollRef.current = true;
         // Opening a thread marks its incoming messages read server-side —
         // refresh the sidebar so its unread badge clears to match.
         onUpdate();
       })
-      .catch(() => setError(t("inbox.loadThreadError")))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (activeThreadIdRef.current === threadId) setError(t("inbox.loadThreadError"));
+      })
+      .finally(() => {
+        if (activeThreadIdRef.current === threadId) setLoading(false);
+      });
+    // onUpdate/t are stable enough in practice; re-running this on every
+    // identity change would refetch the whole thread for no reason.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadId]);
+
+  // Poll the open conversation for new messages — lighter than the sidebar
+  // poll since it only asks for messages after the last one already shown.
+  useEffect(() => {
+    function poll() {
+      if (pollInFlightRef.current || document.visibilityState !== "visible") return;
+      pollInFlightRef.current = true;
+      const polledThreadId = threadId;
+      api
+        .get(`/threads/${polledThreadId}?afterId=${lastMessageIdRef.current}`)
+        .then((d) => {
+          if (activeThreadIdRef.current !== polledThreadId || d.messages.length === 0) return;
+          const wasNearBottom = isNearBottom();
+          setMessages((prev) => mergeNewMessages(prev, d.messages));
+          lastMessageIdRef.current = d.messages.reduce((max, m) => Math.max(max, m.id), lastMessageIdRef.current);
+          shouldAutoScrollRef.current = wasNearBottom;
+          // A new incoming message changes this thread's preview/unread
+          // state for the sidebar too — nudge it rather than waiting out
+          // the sidebar's own longer poll interval.
+          onUpdate();
+        })
+        .catch(() => {
+          // Transient poll failure — stay on the current messages and try
+          // again next tick, same as the sidebar poll's own failure handling.
+        })
+        .finally(() => {
+          pollInFlightRef.current = false;
+        });
+    }
+
+    const timer = setInterval(poll, THREAD_POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId]);
 
   async function handleReply(e) {
@@ -152,7 +235,9 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
     setError("");
     try {
       const { message } = await api.post(`/threads/${threadId}/messages`, { body: body.trim() });
-      setMessages((m) => [...m, message]);
+      setMessages((m) => mergeNewMessages(m, [message]));
+      lastMessageIdRef.current = Math.max(lastMessageIdRef.current, message.id);
+      shouldAutoScrollRef.current = true;
       setBody("");
       onUpdate();
     } catch (err) {
@@ -194,7 +279,7 @@ function ThreadDetail({ threadId, currentUserId, onUpdate, listingTitle }) {
         {counterpart && <p className="thread-panel-counterpart">{t("inbox.conversationWith", { name: counterpart })}</p>}
       </div>
 
-      <div className="message-list">
+      <div className="message-list" ref={messageListRef}>
         {messages.map((m) => (
           <div key={m.id} className={`message-bubble ${m.sender_id === currentUserId ? "mine" : "theirs"}`}>
             <p>{m.body}</p>

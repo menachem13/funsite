@@ -1,30 +1,60 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
+import Pagination from "../components/Pagination";
 import "./AdminCoupons.css";
+
+const PAGE_SIZE = 10;
 
 export default function AdminHome() {
   const { t } = useLanguage();
-  const [data, setData] = useState(null);
-  const [error, setError] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedPage = Math.max(1, parseInt(searchParams.get("page"), 10) || 1);
+
+  const [summary, setSummary] = useState(null);
+  const [summaryError, setSummaryError] = useState("");
+  const [attention, setAttention] = useState(null);
+  const [attentionError, setAttentionError] = useState("");
 
   useEffect(() => {
-    api
-      .get("/admin/summary")
-      .then(setData)
-      .catch(() => setError(t("adminHome.loadError")));
-  }, [t]);
+    api.get("/admin/summary").then(setSummary).catch(() => setSummaryError(t("adminHome.loadError")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  if (error) {
+  useEffect(() => {
+    setAttentionError("");
+    api
+      .get(`/admin/attention?page=${requestedPage}&pageSize=${PAGE_SIZE}`)
+      .then((d) => {
+        setAttention(d);
+        if (d.pagination.page !== requestedPage) {
+          setSearchParams((sp) => {
+            sp.set("page", String(d.pagination.page));
+            return sp;
+          }, { replace: true });
+        }
+      })
+      .catch(() => setAttentionError(t("adminHome.attentionLoadError")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedPage]);
+
+  function goToPage(page) {
+    setSearchParams((sp) => {
+      sp.set("page", String(page));
+      return sp;
+    });
+  }
+
+  if (summaryError) {
     return (
       <div className="container empty-state">
-        <p role="alert">{error}</p>
+        <p role="alert">{summaryError}</p>
       </div>
     );
   }
 
-  if (!data) {
+  if (!summary) {
     return (
       <div className="center-loading">
         <span className="spinner spinner-dark" />
@@ -32,7 +62,7 @@ export default function AdminHome() {
     );
   }
 
-  const { listings, users, attentionListings } = data;
+  const { listings, users } = summary;
 
   return (
     <div className="admin-page container">
@@ -62,41 +92,52 @@ export default function AdminHome() {
         <h2>{t("adminHome.attentionTitle")}</h2>
         <p>{t("adminHome.attentionSubtitle")}</p>
 
-        {attentionListings.length === 0 ? (
+        {attentionError ? (
+          <div className="alert alert-error" role="alert">
+            {attentionError}
+          </div>
+        ) : !attention ? (
+          <div className="center-loading">
+            <span className="spinner spinner-dark" />
+          </div>
+        ) : attention.items.length === 0 ? (
           <div className="empty-state card">
             <p>{t("adminHome.attentionEmpty")}</p>
           </div>
         ) : (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>{t("adminHome.colListing")}</th>
-                  <th>{t("adminHome.colOwner")}</th>
-                  <th>{t("adminHome.colCompleteness")}</th>
-                  <th aria-label="Actions" />
-                </tr>
-              </thead>
-              <tbody>
-                {attentionListings.map((l) => (
-                  <tr key={l.id}>
-                    <td>{l.title}</td>
-                    <td>{l.ownerName}</td>
-                    <td>
-                      <span className="badge badge-status-inactive">
-                        {t("adminHome.completenessCount", { done: l.completeness.done, total: l.completeness.total })}
-                      </span>
-                    </td>
-                    <td className="row-actions">
-                      <Link className="btn btn-secondary btn-sm" to={`/listings/${l.id}`}>
-                        {t("adminHome.viewListing")}
-                      </Link>
-                    </td>
+          <>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>{t("adminHome.colListing")}</th>
+                    <th>{t("adminHome.colOwner")}</th>
+                    <th>{t("adminHome.colCompleteness")}</th>
+                    <th aria-label="Actions" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {attention.items.map((l) => (
+                    <tr key={l.id}>
+                      <td>{l.title}</td>
+                      <td>{l.ownerName}</td>
+                      <td>
+                        <span className="badge badge-status-inactive">
+                          {t("adminHome.completenessCount", { done: l.completeness.done, total: l.completeness.total })}
+                        </span>
+                      </td>
+                      <td className="row-actions">
+                        <Link className="btn btn-secondary btn-sm" to={`/listings/${l.id}`}>
+                          {t("adminHome.viewListing")}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination page={attention.pagination.page} totalPages={attention.pagination.totalPages} onPageChange={goToPage} />
+          </>
         )}
       </section>
 

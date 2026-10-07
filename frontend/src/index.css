@@ -22,6 +22,8 @@
   --danger-bg: #fdeced;
   --success-bg: #e9f9f4;
   --info-bg: #eef0fe;
+  --warning: #b86a00;
+  --warning-bg: #fff3e2;
 
   --font-heading: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
