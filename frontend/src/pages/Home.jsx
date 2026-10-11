@@ -69,6 +69,9 @@ export default function Home() {
             <FindAttractionPanel />
 
             <div className="hero-actions">
+              <Link to="/browse" className="btn btn-primary">
+                {t("home.browseAttractions")}
+              </Link>
               <Link to={ownerCta} className="btn btn-secondary">
                 {user?.role === "owner" ? t("home.goToDashboard") : t("home.listAttraction")}
               </Link>
