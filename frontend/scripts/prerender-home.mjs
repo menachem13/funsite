@@ -32,7 +32,8 @@ const t = (key) => {
 const esc = (str) =>
   String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-const BENEFIT_KEYS = ["benefit1", "benefit2", "benefit3", "benefit4"];
+const RENTER_BENEFIT_KEYS = ["renterBenefit1", "renterBenefit2", "renterBenefit3"];
+const OWNER_BENEFIT_KEYS = ["ownerBenefit1", "ownerBenefit2", "ownerBenefit3"];
 const TESTIMONIAL_KEYS = ["testimonial1", "testimonial2", "testimonial3"];
 
 function categoryCards() {
@@ -47,14 +48,16 @@ function categoryCards() {
   ).join("");
 }
 
-function benefitCards() {
-  return BENEFIT_KEYS.map(
-    (key) => `
+function benefitCards(keys) {
+  return keys
+    .map(
+      (key) => `
       <div class="bento-card">
         <h3>${esc(t(`home.${key}Title`))}</h3>
         <p>${esc(t(`home.${key}Body`))}</p>
       </div>`
-  ).join("");
+    )
+    .join("");
 }
 
 function testimonialCards() {
@@ -78,8 +81,8 @@ function homeSnapshotHtml() {
         <h1>${esc(t("home.heroTitle"))}</h1>
         <p class="lede">${esc(t("home.heroLede"))}</p>
         <div class="hero-actions">
-          <a href="/browse" class="btn btn-primary">${esc(t("home.browseAttractions"))}</a>
-          <a href="/register" class="btn btn-secondary">${esc(t("home.listAttraction"))}</a>
+          <a href="/browse" class="btn btn-primary">${esc(t("home.heroSearchCta"))}</a>
+          <a href="/register" class="btn btn-secondary">${esc(t("home.heroListCta"))}</a>
         </div>
         <p class="hero-note">${esc(t("home.heroNote"))}</p>
       </div>
@@ -96,9 +99,19 @@ function homeSnapshotHtml() {
 
   <section class="section section-alt">
     <div class="container">
-      <h2 class="section-title">${esc(t("home.benefitsTitle"))}</h2>
-      <p class="section-subtitle">${esc(t("home.benefitsSubtitle"))}</p>
-      <div class="bento-grid">${benefitCards()}</div>
+      <span class="step-kicker section-kicker">${esc(t("home.rentersSectionKicker"))}</span>
+      <h2 class="section-title">${esc(t("home.rentersSectionTitle"))}</h2>
+      <p class="section-subtitle">${esc(t("home.rentersSectionSubtitle"))}</p>
+      <div class="bento-grid bento-grid-3">${benefitCards(RENTER_BENEFIT_KEYS)}</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <span class="step-kicker section-kicker">${esc(t("home.ownersSectionKicker"))}</span>
+      <h2 class="section-title">${esc(t("home.ownersSectionTitle"))}</h2>
+      <p class="section-subtitle">${esc(t("home.ownersSectionSubtitle"))}</p>
+      <div class="bento-grid bento-grid-3">${benefitCards(OWNER_BENEFIT_KEYS)}</div>
     </div>
   </section>
 

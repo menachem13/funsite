@@ -14,7 +14,8 @@ import "./Home.css";
 
 const FAQ_KEYS = ["faq1", "faq2", "faq3", "faq4", "faq5", "faq6", "faq7", "faq8", "faq9"];
 const TESTIMONIAL_KEYS = ["testimonial1", "testimonial2", "testimonial3"];
-const BENEFIT_KEYS = ["benefit1", "benefit2", "benefit3", "benefit4"];
+const RENTER_BENEFIT_KEYS = ["renterBenefit1", "renterBenefit2", "renterBenefit3"];
+const OWNER_BENEFIT_KEYS = ["ownerBenefit1", "ownerBenefit2", "ownerBenefit3"];
 const PLANNING_OPTIONS = [
   { icon: "⛺", value: "camp", labelKey: "camp" },
   { icon: "🏫", value: "school", labelKey: "school" },
@@ -70,10 +71,10 @@ export default function Home() {
 
             <div className="hero-actions">
               <Link to="/browse" className="btn btn-primary">
-                {t("home.browseAttractions")}
+                {t("home.heroSearchCta")}
               </Link>
               <Link to={ownerCta} className="btn btn-secondary">
-                {user?.role === "owner" ? t("home.goToDashboard") : t("home.listAttraction")}
+                {user?.role === "owner" ? t("home.goToDashboard") : t("home.heroListCta")}
               </Link>
             </div>
             <p className="hero-note">{t("home.heroNote")}</p>
@@ -135,12 +136,31 @@ export default function Home() {
 
       <section className="section section-alt">
         <div className="container">
+          <span className="step-kicker section-kicker">{t("home.rentersSectionKicker")}</span>
           <Reveal as="h2" className="section-title">
-            {t("home.benefitsTitle")}
+            {t("home.rentersSectionTitle")}
           </Reveal>
-          <p className="section-subtitle">{t("home.benefitsSubtitle")}</p>
-          <div className="bento-grid">
-            {BENEFIT_KEYS.map((key, i) => (
+          <p className="section-subtitle">{t("home.rentersSectionSubtitle")}</p>
+          <div className="bento-grid bento-grid-3">
+            {RENTER_BENEFIT_KEYS.map((key, i) => (
+              <Reveal className="bento-card" delay={(i % 3) * 80} key={key}>
+                <h3>{t(`home.${key}Title`)}</h3>
+                <p>{t(`home.${key}Body`)}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <span className="step-kicker section-kicker">{t("home.ownersSectionKicker")}</span>
+          <Reveal as="h2" className="section-title">
+            {t("home.ownersSectionTitle")}
+          </Reveal>
+          <p className="section-subtitle">{t("home.ownersSectionSubtitle")}</p>
+          <div className="bento-grid bento-grid-3">
+            {OWNER_BENEFIT_KEYS.map((key, i) => (
               <Reveal className="bento-card" delay={(i % 3) * 80} key={key}>
                 <h3>{t(`home.${key}Title`)}</h3>
                 <p>{t(`home.${key}Body`)}</p>

@@ -203,6 +203,11 @@
   margin: 0 auto 44px;
 }
 
+.section-kicker {
+  display: block;
+  text-align: center;
+}
+
 /* Category cards */
 
 .category-grid {
@@ -341,6 +346,10 @@
   gap: 24px;
 }
 
+.bento-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .bento-card {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -438,6 +447,18 @@
 @media (max-width: 480px) {
   .find-panel-selects {
     grid-template-columns: 1fr;
+  }
+
+  /* The longer hero CTA labels don't fit on one line at this width, and
+     .btn's white-space: nowrap (fine for short labels everywhere else)
+     would otherwise just push the button past the edge of the screen
+     instead of wrapping — the hero's own overflow: hidden then silently
+     clips the overflow rather than scrolling, so it has to be fixed here
+     rather than relying on a scrollbar to reveal it. */
+  .hero-actions .btn {
+    width: 100%;
+    white-space: normal;
+    text-align: center;
   }
 }
 
