@@ -170,9 +170,6 @@
   align-self: flex-start;
   background: var(--bg);
   color: var(--ink);
-  /* Logical, not physical: "theirs" sits at the inline-start edge, so its
-     flat "tail" corner must stay on that same side when flipped to RTL —
-     border-bottom-left-radius would leave the tail on the wrong corner. */
   border-end-start-radius: 4px;
 }
 

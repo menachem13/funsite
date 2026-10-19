@@ -1,29 +1,20 @@
 import { Link } from "react-router-dom";
-import LogoMark from "./LogoMark";
+import Logo from "./Logo";
 import { useLanguage } from "../context/LanguageContext";
 import "./Footer.css";
 
 export default function Footer() {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <footer className="site-footer">
       <div className="container footer-inner">
         <div className="footer-top">
           <div className="footer-brand">
-            <Link className="logo" to="/">
-              <LogoMark />
-              fun<span className="logo-accent">all</span>
-            </Link>
+            <Logo />
             <p className="tagline">
               <span className="dash dash-left" />
-              {language === "en" ? (
-                <>
-                  as a <span className="tagline-highlight">&ldquo;funnel&rdquo;</span> for your entertainment
-                </>
-              ) : (
-                t("footer.tagline")
-              )}
+              as a <span className="tagline-highlight">&ldquo;funnel&rdquo;</span> for your entertainment
               <span className="dash dash-right" />
             </p>
           </div>

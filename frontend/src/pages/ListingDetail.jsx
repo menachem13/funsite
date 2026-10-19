@@ -15,27 +15,13 @@ function ageLabel(min, max, t) {
   return t("listingDetail.agesUpTo", { max });
 }
 
-// See the matching helper in ListingCard.jsx — isolates a Latin-script name
-// embedded in a Yiddish/RTL sentence so it doesn't visually reorder or split
-// oddly when the surrounding text wraps.
-function withName(template, name) {
-  const [before, after] = template.split("{name}");
-  return (
-    <>
-      {before}
-      <bdi>{name}</bdi>
-      {after}
-    </>
-  );
-}
-
 // Composes a starting message from whatever discovery context (event type,
 // group size, location, event date) the customer actually brought with them
 // from search — never inventing fields that weren't provided. Returns "" when
 // none apply, so the normal empty/placeholder experience is unchanged for a
 // direct visit. A past or malformed date is treated the same as no date.
-function buildPrefillMessage(t, language, { eventType, groupSize, location, eventDate }) {
-  const dateLabel = isValidFutureDate(eventDate) ? formatEventDate(eventDate, language) : "";
+function buildPrefillMessage(t, { eventType, groupSize, location, eventDate }) {
+  const dateLabel = isValidFutureDate(eventDate) ? formatEventDate(eventDate) : "";
   if (!eventType && !groupSize && !location && !dateLabel) return "";
 
   const eventLabel = eventType ? t(`eventTypes.${eventType}`).toLowerCase() : "";
@@ -62,7 +48,7 @@ function readDiscoveryContext(searchParams) {
 export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
 
   const [listing, setListing] = useState(null);
@@ -72,7 +58,7 @@ export default function ListingDetail() {
   const [error, setError] = useState("");
 
   const [messageBody, setMessageBody] = useState(() =>
-    buildPrefillMessage(t, language, readDiscoveryContext(searchParams))
+    buildPrefillMessage(t, readDiscoveryContext(searchParams))
   );
   const [wasPrefilled, setWasPrefilled] = useState(() => messageBody !== "");
   const [sending, setSending] = useState(false);
@@ -97,17 +83,16 @@ export default function ListingDetail() {
 
   // Re-derive the pre-fill only when navigating to a different listing (the
   // lazy state above already handles the initial one). This keeps an
-  // in-progress edit from being overwritten by an unrelated re-render, such
-  // as a language toggle.
+  // in-progress edit from being overwritten by an unrelated re-render.
   useEffect(() => {
     if (prefilledForId.current === id) return;
     prefilledForId.current = id;
-    const prefill = buildPrefillMessage(t, language, readDiscoveryContext(searchParams));
+    const prefill = buildPrefillMessage(t, readDiscoveryContext(searchParams));
     setMessageBody(prefill);
     setWasPrefilled(prefill !== "");
     setSent(false);
     setSendError("");
-  }, [id, searchParams, t, language]);
+  }, [id, searchParams, t]);
 
   async function handleSendMessage(e) {
     e.preventDefault();
@@ -150,7 +135,7 @@ export default function ListingDetail() {
 
   const discoveryContext = readDiscoveryContext(searchParams);
   const requestDateLabel = isValidFutureDate(discoveryContext.eventDate)
-    ? formatEventDate(discoveryContext.eventDate, language)
+    ? formatEventDate(discoveryContext.eventDate)
     : "";
   const hasRequestContext =
     !isOwnListing &&
@@ -296,7 +281,7 @@ export default function ListingDetail() {
               <>
                 <h2 className="contact-owner-heading">
                   {listing.owner_name
-                    ? withName(t("listingDetail.contactOwnerHeadingNamed"), listing.owner_name)
+                    ? t("listingDetail.contactOwnerHeadingNamed", { name: listing.owner_name })
                     : t("listingDetail.contactOwnerHeading")}
                 </h2>
                 <p className="contact-owner-subtitle">{t("listingDetail.contactOwnerSubtitle")}</p>

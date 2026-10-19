@@ -10,21 +10,6 @@ function ageLabel(min, max, t) {
   return t("listingDetail.agesUpTo", { max });
 }
 
-// Wraps just the name in <bdi> (bidirectional isolate) so a Latin-script
-// name embedded in a Yiddish/RTL sentence keeps its own left-to-right word
-// order — without this, a multi-word name can visually reorder or split
-// oddly when the surrounding RTL text wraps onto a new line.
-function withName(template, name) {
-  const [before, after] = template.split("{name}");
-  return (
-    <>
-      {before}
-      <bdi>{name}</bdi>
-      {after}
-    </>
-  );
-}
-
 // Carries the customer's discovery context (event type, group size, location,
 // event date) from a search/filter result forward to the listing detail
 // page, so it can pre-fill the contact message without the customer
@@ -79,7 +64,7 @@ export default function ListingCard({ listing, featured = false, cover, discover
           {listing.owner_name && (
             <>
               {" · "}
-              {withName(t("listingCard.by"), listing.owner_name)}
+              {t("listingCard.by", { name: listing.owner_name })}
             </>
           )}
         </p>

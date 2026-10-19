@@ -1,0 +1,32 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-heading);
+}
+
+.logo-mark {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.logo-wordmark {
+  font-weight: 800;
+  font-size: 1.28rem;
+  letter-spacing: -0.01em;
+  /* One continuous gradient across the whole wordmark (not a plain "fun" +
+     colored "all") so it reads as a single mark and picks up the same
+     purple-to-orange sweep as the funnel icon next to it, instead of a
+     disconnected two-tone treatment. */
+  background: linear-gradient(90deg, var(--brand-purple) 0%, var(--brand-pink) 55%, var(--brand-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.auth-card .logo {
+  justify-content: center;
+  margin-bottom: 24px;
+}

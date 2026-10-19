@@ -11,11 +11,6 @@
   max-width: 420px;
 }
 
-.auth-card .logo {
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
 .auth-card h1 {
   font-size: 1.6rem;
   text-align: center;

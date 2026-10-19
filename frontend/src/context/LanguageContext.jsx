@@ -1,53 +1,25 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { translations, getPath } from "../i18n/translations";
 
 const LanguageContext = createContext(null);
-const STORAGE_KEY = "funall_language";
-const RTL_LANGUAGES = new Set(["yi"]);
 
-function readStoredLanguage() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored === "yi" || stored === "en" ? stored : "en";
-  } catch {
-    return "en";
-  }
-}
-
+// English-only now, but kept as a context (rather than a plain imported
+// function) so every call site's `const { t } = useLanguage();` keeps
+// working unchanged.
 export function LanguageProvider({ children }) {
-  const [language, setLanguageState] = useState(readStoredLanguage);
-
-  useEffect(() => {
-    document.documentElement.lang = language;
-    document.documentElement.dir = RTL_LANGUAGES.has(language) ? "rtl" : "ltr";
-  }, [language]);
-
-  function setLanguage(next) {
-    setLanguageState(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // Private browsing / storage disabled — language choice just won't
-      // persist across reloads, which is fine, not worth surfacing an error.
+  const value = useMemo(() => {
+    function t(key, vars) {
+      const value = getPath(translations.en, key);
+      if (value === undefined) return key;
+      if (vars) {
+        return Object.entries(vars).reduce((str, [k, v]) => str.replaceAll(`{${k}}`, v), value);
+      }
+      return value;
     }
-  }
+    return { t };
+  }, []);
 
-  function t(key, vars) {
-    const dict = translations[language] || translations.en;
-    let value = getPath(dict, key);
-    if (value === undefined) value = getPath(translations.en, key);
-    if (value === undefined) return key;
-    if (vars) {
-      return Object.entries(vars).reduce((str, [k, v]) => str.replaceAll(`{${k}}`, v), value);
-    }
-    return value;
-  }
-
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, isRtl: RTL_LANGUAGES.has(language), t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
 export function useLanguage() {

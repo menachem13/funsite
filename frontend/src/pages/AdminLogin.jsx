@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import LogoMark from "../components/LogoMark";
+import { useNavigate } from "react-router-dom";
+import Logo from "../components/Logo";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -50,10 +50,7 @@ export default function AdminLogin() {
   return (
     <div className="auth-page">
       <div className="auth-card card">
-        <Link className="logo" to="/">
-          <LogoMark />
-          fun<span className="logo-accent">all</span>
-        </Link>
+        <Logo />
         <h1>{t("auth.adminLoginTitle")}</h1>
         <p className="auth-subtitle">
           {step === "username" ? t("auth.adminLoginSubtitleUsername") : t("auth.adminLoginSubtitleCode")}

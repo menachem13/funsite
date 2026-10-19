@@ -158,14 +158,8 @@ main {
   color: var(--primary);
 }
 
-/* The arrow lives in CSS, not as a literal "←" in JSX, so it can flip
-   direction for RTL automatically instead of pointing the wrong way. */
 .back-link::before {
   content: "← ";
-}
-
-[dir="rtl"] .back-link::before {
-  content: "→ ";
 }
 
 /* Buttons */
@@ -499,36 +493,7 @@ textarea {
   }
 }
 
-/* Logo */
-
-.logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--ink);
-  /* The wordmark itself is a brand name, not translated content — it must
-     always read icon-then-"funall" left-to-right, even when the page is in
-     RTL (Yiddish). Without this, RTL flex-item reordering visually flips
-     the icon/text order and reads as "allfun". */
-  direction: ltr;
-}
-
-.logo-mark {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.logo-accent {
-  background: linear-gradient(90deg, var(--brand-pink), var(--brand-orange));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* Logo — see components/Logo.jsx + Logo.css */
 
 /* Spinner */
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import LogoMark from "../components/LogoMark";
+import Logo from "../components/Logo";
 import { api, ApiError } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
@@ -31,10 +31,7 @@ export default function ForgotPassword() {
   return (
     <div className="auth-page">
       <div className="auth-card card">
-        <Link className="logo" to="/">
-          <LogoMark />
-          fun<span className="logo-accent">all</span>
-        </Link>
+        <Logo />
         <h1>{t("auth.forgotPasswordTitle")}</h1>
         <p className="auth-subtitle">{t("auth.forgotPasswordSubtitle")}</p>
 

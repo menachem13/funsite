@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import LogoMark from "./LogoMark";
-import LanguageToggle from "./LanguageToggle";
+import Logo from "./Logo";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useUnreadMessages } from "../context/UnreadMessagesContext";
@@ -22,10 +21,7 @@ export default function Navbar() {
   return (
     <header className="site-header">
       <div className="container header-inner">
-        <Link className="logo" to="/" onClick={() => setMenuOpen(false)}>
-          <LogoMark />
-          fun<span className="logo-accent">all</span>
-        </Link>
+        <Logo onClick={() => setMenuOpen(false)} />
 
         <button
           className="nav-toggle"
@@ -98,7 +94,6 @@ export default function Navbar() {
           )}
 
           <div className="nav-auth">
-            <LanguageToggle />
             {user?.role !== "owner" && (
               <Link className="btn btn-primary btn-sm" to="/register" onClick={() => setMenuOpen(false)}>
                 {t("common.listAttraction")}
@@ -123,11 +118,6 @@ export default function Navbar() {
             )}
           </div>
         </nav>
-
-        <Link className="logo logo-he" to="/" onClick={() => setMenuOpen(false)}>
-          <LogoMark />
-          <img className="logo-wordmark-he" src="/funall-wordmark-he.png" alt="פאנאל" />
-        </Link>
       </div>
     </header>
   );
